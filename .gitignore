@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environment
+.env
+*.env
+venv/
+env/
+.venv/
+
+# Database (local only — dùng PostgreSQL trên production)
+*.db
+*.sqlite
+*.sqlite3
+
+# One-shot helper / debug scripts (not part of app)
+patch_main.py
+.chrome-check-count-dom.html
+
+# Local backups / generated recovery files
+backups/
+private_backups/
+.codex-backups/
+*.bak
+*.bak-*
+*.backup
+*.recovery
+*.bak-recovery
+index *.html
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+# Large local videos - host separately or use Git LFS later
+static/assets/videos/demo/**/*.mp4

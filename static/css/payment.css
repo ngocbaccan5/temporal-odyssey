@@ -1,0 +1,68 @@
+﻿/* ═══════════════════════════════
+   PAYWALL
+═══════════════════════════════ */
+#s-pay{
+  align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%,#3a0005 0%,transparent 60%),
+             linear-gradient(180deg,#150203 0%,#080101 100%);
+  padding:24px 18px;text-align:center;
+}
+.pw-icon{font-size:64px;margin-bottom:12px;filter:drop-shadow(0 0 28px var(--td-glow));}
+.pw-title{font-family:var(--ui-font);font-size:clamp(18px,4vw,28px);font-weight:700;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+.pw-desc{font-size:21px;color:var(--warm);font-style:italic;line-height:1.7;max-width:380px;margin-bottom:24px;}
+.plans{display:flex;flex-direction:column;gap:11px;width:100%;max-width:370px;}
+@media(min-width:700px){
+  .plans{flex-direction:row;max-width:720px;}
+  .plan{flex:1;}
+}
+.plan{border-radius:6px;padding:16px 18px;cursor:pointer;transition:all .35s;position:relative;overflow:hidden;}
+.plan:hover{transform:translateY(-3px);}
+.plan.feat{background:linear-gradient(135deg,rgba(139,0,0,.35),rgba(201,168,76,.12));
+  border:2px solid var(--gold);box-shadow:0 0 28px rgba(201,168,76,.12);}
+.plan.basic{background:rgba(20,4,6,.9);border:1px solid rgba(201,168,76,.22);}
+.plan-ribbon{position:absolute;top:-1px;right:18px;background:linear-gradient(135deg,#8b0a14,#c01828);
+  color:#f0d080;font-size:19px;letter-spacing:.5px;padding:3px 10px;border-radius:0 0 6px 6px;font-family:var(--ui-font);font-weight:700;}
+.plan-name{font-family:var(--ui-font);font-size:18px;color:var(--gold);margin-bottom:4px;font-weight:700;}
+.plan-price{font-size:24px;font-weight:700;color:var(--parch);}
+.plan-price em{font-size:18px;color:#7a6050;font-style:normal;font-weight:300;}
+.plan-feats{margin-top:9px;font-size:18px;color:var(--warm);line-height:2;}
+.fy{color:#7fdb5a;margin-right:5px;}.fn{color:#4a3030;margin-right:5px;}
+.skip-btn{margin-top:14px;background:none;border:none;color:#4a3030;font-size:18px;cursor:pointer;transition:color .3s;}
+.skip-btn:hover{color:#7a5050;}
+
+/* ═══════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════ */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:20;
+  background:rgba(5,1,2,.97);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(201,168,76,.1);
+  display:flex;justify-content:center;padding:8px 0 max(env(safe-area-inset-bottom),5px);}
+.bni{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px;cursor:pointer;transition:all .3s;color:#3a2a3a;}
+@media(min-width:700px){.bni{padding:8px 16px;max-width:160px;}.bni-lb{font-size:21px;}.bni-ic{font-size:26px;}}
+.bni:hover{color:#7a5a6a;}
+.bni.on{color:var(--gold);}
+.bni-ic{font-size:19px;}
+.bni-lb{font-size:19px;letter-spacing:.4px;text-transform:uppercase;font-family:var(--ui-font);font-weight:700;}
+@media(min-width:700px){.badge-item{min-width:70px;padding:10px 14px;font-size:24px;}}
+
+/* VIDEO MODAL */
+#vmodal{display:none;position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.93);
+  align-items:center;justify-content:center;padding:18px;}
+#vmodal.open{display:flex;}
+.vmod{background:linear-gradient(160deg,#160410,#0a0108);border:1px solid rgba(201,168,76,.25);
+  border-radius:8px;width:100%;max-width:460px;padding:22px;position:relative;}
+.vmod-x{position:absolute;top:11px;right:13px;background:none;border:none;color:#6a3a5a;font-size:24px;cursor:pointer;}
+.vmod-x:hover{color:var(--gold);}
+.vmod-title{font-family:var(--ui-font);font-size:18px;color:var(--gold);margin-bottom:14px;text-align:center;letter-spacing:.4px;font-weight:700;}
+.vsim{width:100%;aspect-ratio:16/9;background:radial-gradient(circle at 50% 40%,#250010,#080105);
+  border-radius:6px;border:1px solid rgba(201,168,76,.12);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;font-size:44px;position:relative;overflow:hidden;}
+.vsim-bar{position:absolute;bottom:0;left:0;height:3px;background:linear-gradient(90deg,#c01828,var(--gold));
+  animation:vplay 5s linear forwards;}
+.vsim-txt{font-size:21px;color:#6a4050;font-style:italic;}
+@keyframes vplay{from{width:0}to{width:100%}}
+.vmod-note{font-size:21px;color:#4a3040;font-style:italic;text-align:center;margin-top:10px;}
+

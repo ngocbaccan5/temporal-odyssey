@@ -1,0 +1,15 @@
+{
+  "id": "battle",
+  "route": "/map/battle",
+  "label": "Chien Tran",
+  "mode": "timed_quiz",
+  "runtimeSources": [
+    "static/js/app.js",
+    "static/cleanup.js"
+  ],
+  "assets": {
+    "thumbnail": "/static/assets/images/thumbnails/thumb-battle.webp",
+    "localImage": "/static/assets/images/thumbnails/chientran.jpg",
+    "icon": "/static/assets/images/icons/icon1.jpg"
+  }
+}

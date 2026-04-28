@@ -1,0 +1,15 @@
+{
+  "id": "dynasty",
+  "route": "/map/dynasty",
+  "label": "Trieu Dai",
+  "mode": "timeline",
+  "runtimeSources": [
+    "static/js/app.js",
+    "static/cleanup.js"
+  ],
+  "assets": {
+    "thumbnail": "/static/assets/images/thumbnails/thumb-dynasty.webp",
+    "localImage": "/static/assets/images/thumbnails/trieudai.jpg",
+    "icon": "/static/assets/images/icons/icon1.jpg"
+  }
+}

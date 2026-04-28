@@ -1,0 +1,50 @@
+﻿/* TOAST */
+#toast{position:fixed;top:65px;left:50%;transform:translateX(-50%) translateY(-10px);
+  background:rgba(12,3,6,.97);border:1px solid rgba(201,168,76,.35);
+  color:var(--gold2);padding:8px 20px;border-radius:30px;
+  font-size:18px;z-index:100;opacity:0;transition:all .35s;
+  pointer-events:none;white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,.5);}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fu0{animation:fadeUp .65s .0s both;}
+.fu1{animation:fadeUp .65s .12s both;}
+.fu2{animation:fadeUp .65s .24s both;}
+.fu3{animation:fadeUp .65s .36s both;}
+.fu4{animation:fadeUp .65s .5s both;}
+
+body,button,input,select,textarea,
+.tnlink,.hsub,.hdesc,.ftag,.chip,.diff-banner,.diff-info span,.cat-meta,.evhyr,
+.auth-label,.auth-input,.auth-note,.auth-tab,.auth-subtitle,.auth-demo,.nav-hello{
+  font-family:var(--ui-font) !important;
+}
+.btn-main,.btn-ghost,.cat-name,.cat-pill,.mapbar-title,.diff-info strong,.era-hdr-txt,.sec-ttl,
+.reward-ttl,.evhtitle,.res-ttl,.pw-title,.plan-name,.bni-lb,.vmod-title,.pw-ribbon{
+  font-family:var(--ui-font) !important;
+  letter-spacing:normal !important;
+  line-height:1.35;
+}
+.tnbrand,.htitle{
+  font-family:var(--display-font) !important;
+  letter-spacing:3px;
+  font-weight:800;
+}
+.tnbrand{
+  text-transform:uppercase;
+}
+
+.auth-screen{
+  position:fixed;
+  inset:0;
+  z-index:99999;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,213,96,.12) 0, rgba(255,213,96,0) 22%),
+    linear-gradient(180deg, rgba(92,11,15,.95), rgba(41,4,6,.98));
+}
+.auth-screen.active{display:flex !important;}

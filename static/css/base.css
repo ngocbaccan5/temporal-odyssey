@@ -1,0 +1,69 @@
+﻿<style>
+  /* Tự động căn chỉnh tỷ lệ 16:9 cho mọi video YouTube */
+iframe[src*="youtube.com"] {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  display: block;
+  margin: 15px 0;
+}
+:root{
+  --ui-font:'Segoe UI',Tahoma,Verdana,Arial,sans-serif;
+  --display-font:'Trebuchet MS','Segoe UI',Tahoma,Arial,sans-serif;
+  --deep:#0d0102;
+  /* Huyền Thoại – tím huyền bí */
+  --ht-bg1:#882e2e; --ht-bg2:#a31f1f; --ht-acc:#9b59b6; --ht-acc2:#d7b8f5; --ht-glow:rgba(155,89,182,.45);
+  /* Chiến Trận – đỏ máu lửa */
+  --ct-bg1:#93303b; --ct-bg2:#6c181f; --ct-acc:#c01828; --ct-acc2:#f08090; --ct-glow:rgba(200,24,40,.45);
+  /* Triều Đại – vàng hoàng gia */
+  --td-bg1:#a33131; --td-bg2:#7d2323; --td-acc:#c9a84c; --td-acc2:#f0d080; --td-glow:rgba(201,168,76,.45);
+
+  --gold:#c9a84c; --gold2:#f0d080; --parch:#f5e8c8; --warm:#e8c89a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--deep);color:var(--parch);font-family:var(--ui-font);height:100vh;overflow:hidden;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");opacity:.35;}
+
+.screen{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;flex-direction:column;overflow:hidden;
+  display:flex;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease;pointer-events:none;}
+.screen.active{opacity:1;visibility:visible;pointer-events:auto;}
+/* Tối ưu hóa tổng thể cho thiết bị di động */
+html {
+  -webkit-text-size-adjust: 100%; /* Ngăn việc tự động phóng to chữ khi xoay ngang màn hình */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; /* Vô hiệu hóa độ trễ 300ms khi tap và chống zoom */
+}
+
+body {
+  -webkit-tap-highlight-color: transparent; /* Loại bỏ dải màu xanh/xám nhấp nháy khi chạm vào nút/link */
+  -webkit-font-smoothing: antialiased; /* Làm font chữ sắc nét hơn trên màn hình độ phân giải cao */
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none; /* Ngăn chặn hiệu ứng kéo để làm mới (pull-to-refresh) của trình duyệt */
+  
+  /* Hỗ trợ khoảng trống an toàn (Safe Area) cho màn hình có "tai thỏ" (như iPhone) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Kích hoạt cuộn mượt mà (smooth scrolling) cho các khu vực có thanh cuộn bằng tay */
+.evrow, .map-body, .evbody, .cats {
+  -webkit-overflow-scrolling: touch; 
+}
+
+/* Ẩn thanh cuộn trên mobile để giao diện trông sạch sẽ và giống app hơn */
+@media (max-width: 768px) {
+  .evrow::-webkit-scrollbar, .map-body::-webkit-scrollbar, .cats::-webkit-scrollbar {
+    display: none; 
+  }
+  .evrow, .map-body, .cats {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* ═══════════════════════════════

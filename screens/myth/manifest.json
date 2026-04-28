@@ -1,0 +1,14 @@
+{
+  "id": "myth",
+  "route": "/map/myth",
+  "label": "Huyen Thoai",
+  "mode": "story",
+  "runtimeSources": [
+    "static/js/app.js",
+    "static/cleanup.js"
+  ],
+  "assets": {
+    "background": "/static/assets/images/backgrounds/cacman.jpg",
+    "icon": "/static/assets/images/icons/icon1.jpg"
+  }
+}

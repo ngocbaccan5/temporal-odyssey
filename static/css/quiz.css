@@ -1,0 +1,183 @@
+﻿.tl-drag-icon{font-size:21px;opacity:.5;}
+.tl-year{font-size:19px;letter-spacing:1px;color:var(--gold);margin-left:auto;white-space:nowrap;}
+.tl-check-btn{
+  margin-top:14px;padding:11px;width:100%;border-radius:4px;cursor:pointer;
+  font-family:var(--ui-font);font-size:21px;letter-spacing:.6px;font-weight:700;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);
+  color:var(--gold2);transition:all .3s;
+}
+.tl-check-btn:hover{background:rgba(201,168,76,.2);border-color:var(--gold);}
+
+/* RESULT BOX */
+.result-box{display:none;margin-top:14px;padding:16px;border-radius:6px;text-align:center;}
+.result-box.win{border:1px solid rgba(100,200,80,.35);background:rgba(50,150,60,.08);}
+.result-box.lose{border:1px solid rgba(200,80,80,.35);background:rgba(150,30,30,.08);}
+.res-ttl{font-family:var(--ui-font);font-size:21px;margin-bottom:7px;font-weight:700;}
+.res-exp{font-size:19px;color:var(--warm);font-style:italic;margin-bottom:12px;line-height:1.6;}
+.xp-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 14px;border-radius:20px;font-size:19px;margin-bottom:12px;}
+.theme-myth .xp-chip{background:rgba(155,89,182,.12);border:1px solid rgba(155,89,182,.3);color:#d7b8f5;}
+.theme-battle .xp-chip{background:rgba(200,24,40,.12);border:1px solid rgba(200,24,40,.3);color:#f08090;}
+.theme-dynasty .xp-chip{background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.3);color:var(--gold2);}
+
+/* ══════════════════════════════
+   QUIZ MODAL — Kahoot Style
+   ══════════════════════════════ */
+.quiz-overlay{display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.92);
+  align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);}
+.quiz-overlay.open{display:flex;}
+.quiz-box{background:linear-gradient(160deg,#1a1a2e,#0b0b12);border:1px solid rgba(201,168,76,.25);
+  border-radius:16px;max-width:560px;width:100%;max-height:92vh;overflow-y:auto;padding:0;
+  box-shadow:0 12px 48px rgba(0,0,0,.8);animation:quizSlideIn .35s ease;}
+@keyframes quizSlideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.quiz-header{padding:16px 20px 12px;border-bottom:1px solid rgba(201,168,76,.15);
+  display:flex;align-items:center;justify-content:space-between;}
+.quiz-header h3{font-family:var(--ui-font);font-size:15px;color:var(--gold);margin:0;letter-spacing:.3px;}
+.quiz-close{background:none;border:none;color:var(--warm);font-size:22px;cursor:pointer;padding:4px 8px;
+  border-radius:6px;transition:all .2s;}
+.quiz-close:hover{color:#fff;background:rgba(255,255,255,.08);}
+
+/* ── Kahoot-style Progress Bar ── */
+.quiz-progress{display:flex;gap:5px;padding:14px 20px 6px;align-items:center;}
+.quiz-progress-dot{
+  flex:1;height:10px;border-radius:5px;
+  background:rgba(255,255,255,.1);
+  transition:background .35s, transform .2s;
+  position:relative;
+}
+.quiz-progress-dot.done{
+  background:linear-gradient(90deg,#4caf50,#66bb6a);
+  transform:scaleY(1.1);
+  box-shadow:0 0 8px rgba(76,175,80,.5);
+}
+.quiz-progress-dot.current{
+  background:linear-gradient(90deg,#c9a84c,#f0d080);
+  transform:scaleY(1.2);
+  box-shadow:0 0 10px rgba(201,168,76,.6);
+  animation:progressPulse 1.2s ease-in-out infinite;
+}
+@keyframes progressPulse{
+  0%,100%{box-shadow:0 0 6px rgba(201,168,76,.5);}
+  50%{box-shadow:0 0 16px rgba(201,168,76,.9);}
+}
+.quiz-progress-label{
+  font-size:11px;color:var(--gold);letter-spacing:.5px;
+  white-space:nowrap;margin-left:8px;font-weight:700;
+}
+
+.quiz-body{padding:20px 20px 10px;}
+.quiz-q{margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid rgba(255,255,255,.05);}
+.quiz-q:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.quiz-q-num{font-family:var(--ui-font);font-size:11px;color:var(--gold);text-transform:uppercase;
+  letter-spacing:1.2px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.quiz-q-diff{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;letter-spacing:.5px;font-weight:600;}
+.quiz-q-diff.easy{background:rgba(102,187,106,.12);color:#81c784;}
+.quiz-q-diff.medium{background:rgba(255,183,77,.12);color:#ffb74d;}
+.quiz-q-diff.hard{background:rgba(229,57,53,.12);color:#ef9a9a;}
+.quiz-q-text{
+  font-size:16px;color:var(--parch);line-height:1.7;margin-bottom:16px;font-weight:600;
+}
+
+/* ── 4 nút lớn theo phong cách Kahoot ── */
+.quiz-opts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media(max-width:480px){
+  .quiz-opts{grid-template-columns:1fr;}
+  .quiz-opt{min-height:56px !important;}
+}
+.quiz-opt{
+  padding:14px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  text-align:left;
+  font-size:14px;
+  display:flex;align-items:center;gap:10px;
+  line-height:1.4;
+  min-height:64px;
+  transition:all .2s;
+  font-weight:500;
+  position:relative;
+  overflow:hidden;
+}
+/* Màu sắc 4 ô theo Kahoot: đỏ, xanh dương, vàng, xanh lá */
+.quiz-opt[data-oi="0"]{
+  background:rgba(229,57,53,.15);border:2px solid rgba(229,57,53,.3);color:#ef9a9a;
+}
+.quiz-opt[data-oi="1"]{
+  background:rgba(30,120,230,.15);border:2px solid rgba(30,120,230,.3);color:#90caf9;
+}
+.quiz-opt[data-oi="2"]{
+  background:rgba(201,168,76,.12);border:2px solid rgba(201,168,76,.3);color:var(--gold2);
+}
+.quiz-opt[data-oi="3"]{
+  background:rgba(76,175,80,.12);border:2px solid rgba(76,175,80,.3);color:#a5d6a7;
+}
+
+.quiz-opt[data-oi="0"]:hover{background:rgba(229,57,53,.30);border-color:#e53935;color:#fff;transform:translateY(-2px);}
+.quiz-opt[data-oi="1"]:hover{background:rgba(30,120,230,.30);border-color:#1e78e6;color:#fff;transform:translateY(-2px);}
+.quiz-opt[data-oi="2"]:hover{background:rgba(201,168,76,.28);border-color:var(--gold);color:#fff;transform:translateY(-2px);}
+.quiz-opt[data-oi="3"]:hover{background:rgba(76,175,80,.28);border-color:#4caf50;color:#fff;transform:translateY(-2px);}
+
+/* Letter badge theo màu tương ứng */
+.quiz-opt-letter{
+  width:30px;height:30px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;flex-shrink:0;
+  transition:all .2s;
+}
+.quiz-opt[data-oi="0"] .quiz-opt-letter{background:rgba(229,57,53,.4);color:#ffcdd2;}
+.quiz-opt[data-oi="1"] .quiz-opt-letter{background:rgba(30,120,230,.4);color:#bbdefb;}
+.quiz-opt[data-oi="2"] .quiz-opt-letter{background:rgba(201,168,76,.35);color:var(--gold2);}
+.quiz-opt[data-oi="3"] .quiz-opt-letter{background:rgba(76,175,80,.4);color:#c8e6c9;}
+
+/* Trạng thái đã chọn */
+.quiz-opt[data-oi="0"].selected{background:rgba(229,57,53,.45);border-color:#e53935;color:#fff;}
+.quiz-opt[data-oi="1"].selected{background:rgba(30,120,230,.45);border-color:#1e78e6;color:#fff;}
+.quiz-opt[data-oi="2"].selected{background:rgba(201,168,76,.42);border-color:var(--gold);color:#fff;}
+.quiz-opt[data-oi="3"].selected{background:rgba(76,175,80,.42);border-color:#4caf50;color:#fff;}
+
+.quiz-opt.selected .quiz-opt-letter{filter:brightness(1.4);}
+
+/* Đúng/Sai — ghi đè tất cả */
+.quiz-opt.correct{border-color:#4caf50 !important;background:rgba(76,175,80,.25) !important;color:#a5d6a7 !important;}
+.quiz-opt.correct .quiz-opt-letter{background:#4caf50 !important;color:#fff !important;}
+.quiz-opt.wrong{border-color:#e53935 !important;background:rgba(229,57,53,.2) !important;color:#ef9a9a !important;}
+.quiz-opt.wrong .quiz-opt-letter{background:#e53935 !important;color:#fff !important;}
+.quiz-opt.disabled{pointer-events:none;opacity:.75;}
+
+.quiz-footer{padding:16px 20px;border-top:1px solid rgba(201,168,76,.1);text-align:center;}
+.quiz-submit{
+  padding:13px 40px;border-radius:12px;border:none;cursor:pointer;
+  font-family:var(--ui-font);font-size:15px;font-weight:700;color:#0b0b12;letter-spacing:.3px;
+  background:linear-gradient(135deg,#f0d080,#c9a84c);transition:all .25s;
+  box-shadow:0 4px 16px rgba(201,168,76,.25);min-width:160px;
+}
+.quiz-submit:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(201,168,76,.4);}
+.quiz-submit:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.quiz-result{text-align:center;padding:28px 20px;}
+.quiz-result-icon{font-size:56px;margin-bottom:14px;animation:quizBounce .5s ease;}
+@keyframes quizBounce{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.quiz-result-title{font-family:var(--ui-font);font-size:22px;font-weight:700;margin-bottom:6px;}
+.quiz-result-title.pass{color:#66bb6a;}
+.quiz-result-title.fail{color:#ef5350;}
+.quiz-result-score{font-size:15px;color:var(--warm);margin-bottom:8px;}
+.quiz-result-msg{font-size:12px;color:rgba(245,232,200,.5);margin-bottom:18px;line-height:1.6;}
+.quiz-result-btn{margin:6px;padding:11px 24px;border-radius:10px;border:none;cursor:pointer;
+  font-family:var(--ui-font);font-size:13px;font-weight:600;transition:all .25s;}
+.quiz-result-btn.primary{background:linear-gradient(135deg,#f0d080,#c9a84c);color:#0b0b12;
+  box-shadow:0 3px 12px rgba(201,168,76,.2);}
+.quiz-result-btn.secondary{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--warm);}
+.quiz-result-btn:hover{transform:translateY(-2px);}
+.quiz-loading{text-align:center;padding:48px 20px;color:var(--warm);}
+.quiz-loading .spinner{width:36px;height:36px;border:3px solid rgba(201,168,76,.15);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.btn-quiz{padding:10px 22px;border-radius:10px;border:1.5px solid rgba(201,168,76,.35);cursor:pointer;
+  font-family:var(--ui-font);font-size:12px;font-weight:700;color:var(--gold);
+  background:rgba(201,168,76,.06);transition:all .25s;margin-top:8px;letter-spacing:.3px;}
+.btn-quiz:hover{background:rgba(201,168,76,.15);border-color:var(--gold);transform:translateY(-1px);}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 4px rgba(201,168,76,.3)}50%{box-shadow:0 0 18px rgba(201,168,76,.7);transform:scale(1.06)}}
+

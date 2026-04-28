@@ -1,0 +1,264 @@
+﻿   RESPONSIVE — Mobile First
+   Breakpoints: phone <480px, tablet 481-768px, desktop >768px
+══════════════════════════════════════════════ */
+
+/* ── ROOT: scale font theo màn hình ── */
+:root {
+  --fs-xs: clamp(10px, 2.5vw, 13px);
+  --fs-sm: clamp(12px, 3vw, 15px);
+  --fs-md: clamp(14px, 3.5vw, 18px);
+  --fs-lg: clamp(16px, 4vw, 21px);
+  --fs-xl: clamp(20px, 5vw, 28px);
+  --fs-xxl: clamp(26px, 7vw, 52px);
+}
+
+/* ── LANDING ── */
+@media(max-width:480px){
+  .htitle{font-size:clamp(24px,8vw,40px) !important;}
+  .hsub{font-size:clamp(10px,3vw,13px) !important;letter-spacing:2px;}
+  .hdesc{font-size:clamp(13px,3.5vw,16px) !important;}
+  .btn-main{font-size:clamp(13px,3.5vw,16px) !important;padding:12px 28px !important;letter-spacing:1px;}
+  .btn-ghost{font-size:clamp(13px,3.5vw,15px) !important;padding:8px 20px !important;}
+  .globe{width:80px !important;height:80px !important;margin-bottom:10px;}
+  .orn-panel{display:none;}
+  .hero{padding:8px 12px 16px !important;}
+  .intro-popup{width:260px !important;font-size:12px !important;}
+}
+
+/* ── TOPNAV ── */
+@media(max-width:480px){
+  .topnav{padding:10px 12px !important;}
+  .tnbrand{font-size:12px !important;letter-spacing:1px;}
+  .tnlink{font-size:13px !important;}
+  .tnlinks{gap:8px !important;}
+  .hamburger-btn{font-size:18px !important;}
+}
+
+/* ── MAPBAR ── */
+@media(max-width:480px){
+  .mapbar{padding:8px 12px !important;}
+  .mapbar-title{font-size:14px !important;}
+  .back-btn{font-size:18px !important;}
+  .chip{font-size:13px !important;padding:2px 7px !important;}
+}
+
+/* ── BOTTOM NAV ── */
+@media(max-width:480px){
+  .bni-ic{font-size:20px !important;}
+  .bni-lb{font-size:9px !important;letter-spacing:0.3px;}
+  .bni{padding:4px 8px !important;}
+  .bnav{padding:6px 0 max(env(safe-area-inset-bottom),4px) !important;}
+}
+
+/* ── PATH MAP ── */
+@media(max-width:480px){
+  .path-node-circle{width:52px !important;height:52px !important;}
+  .path-node-label{font-size:9px !important;max-width:68px !important;}
+  .path-node-yr{font-size:8px !important;}
+  .path-node-num{width:16px !important;height:16px !important;font-size:9px !important;}
+  .path-arrow{width:30px !important;height:50px !important;font-size:16px !important;}
+  .path-nav-counter{font-size:10px !important;}
+}
+
+/* ── EVENT SCREEN ── */
+@media(max-width:480px){
+  .evhero{height:140px !important;}
+  .evhem{font-size:40px !important;}
+  .evhtitle{font-size:clamp(13px,4vw,17px) !important;}
+  .evhyr{font-size:11px !important;letter-spacing:1px;}
+  .evbody{padding:10px 12px 80px !important;}
+  .sec-ttl{font-size:14px !important;}
+  .story{font-size:14px !important;line-height:1.7;}
+  .choice-btn{font-size:14px !important;padding:10px 12px !important;}
+  .bq-question{font-size:15px !important;}
+  .bq-opt{font-size:14px !important;padding:9px 12px !important;}
+  .vlbl{font-size:14px !important;}
+  .vsub{font-size:12px !important;}
+  .vidbox{height:110px !important;}
+}
+
+/* ── CAT SELECT ── */
+@media(max-width:480px){
+  .catselect-title{font-size:clamp(18px,5vw,24px) !important;}
+  .catselect-sub{font-size:13px !important;}
+  .cats-select{gap:10px !important;padding:0 8px !important;}
+  .cat-sel{min-width:120px !important;max-width:160px !important;}
+  .cat-name{font-size:14px !important;}
+  .cat-pill{font-size:11px !important;padding:2px 8px !important;}
+  .cat-meta{font-size:13px !important;}
+}
+
+/* ── PAYWALL / PAYMENT ── */
+@media(max-width:480px){
+  .pw-title{font-size:clamp(16px,5vw,22px) !important;}
+  .pw-desc{font-size:14px !important;}
+  .plan{padding:12px 14px !important;}
+  .plan-name{font-size:14px !important;}
+  .plan-price{font-size:18px !important;}
+  .plan-feats{font-size:13px !important;}
+  .plans{flex-direction:column !important;}
+  .xp-redeem-row{flex-direction:column !important;align-items:center;}
+  .xp-redeem-opt{max-width:100% !important;width:80% !important;}
+  .payment-body{padding:12px 12px 60px !important;}
+  .pay-form-card{padding:14px !important;}
+  .pay-input{font-size:14px !important;}
+  .pay-confirm-btn{font-size:14px !important;padding:12px !important;}
+}
+
+/* ── SIDE MENU ── */
+@media(max-width:480px){
+  .side-menu{width:260px !important;}
+  .side-menu-username{font-size:14px !important;}
+  .side-menu-item{font-size:14px !important;padding:10px 14px !important;}
+  .side-acc-header{font-size:13px !important;padding:10px 14px !important;}
+}
+
+/* ── JOURNAL ── */
+@media(max-width:480px){
+  .journal-wrap{padding:12px 12px 80px !important;}
+  .journal-card{padding:12px !important;}
+  .journal-big{font-size:24px !important;}
+  .journal-kicker{font-size:11px !important;}
+  .journal-sub{font-size:13px !important;}
+  .journal-tabs{flex-wrap:wrap;}
+  .journal-tab{font-size:13px !important;padding:8px 12px !important;}
+}
+
+/* ── AUTH SCREEN ── */
+@media(max-width:480px){
+  .auth-card{padding:20px 16px !important;margin:12px !important;}
+  .auth-title{font-size:20px !important;}
+  .auth-subtitle{font-size:13px !important;}
+  .auth-input{font-size:15px !important;padding:10px 12px !important;}
+  .auth-btn{font-size:14px !important;padding:12px !important;}
+}
+
+/* ── CHATBOT ── */
+@media(max-width:480px){
+  .chatbot-modal{width:280px !important;max-height:380px !important;}
+  .chatbot-input{font-size:13px !important;}
+  .chat-bubble{font-size:13px !important;}
+}
+
+/* ── TABLET (481-768px) ── */
+@media(min-width:481px) and (max-width:768px){
+  .htitle{font-size:clamp(28px,6vw,44px) !important;}
+  .btn-main{font-size:15px !important;padding:13px 36px !important;}
+  .orn-panel{display:none;}
+  .path-node-circle{width:58px !important;height:58px !important;}
+  .evhero{height:160px !important;}
+  .evhem{font-size:48px !important;}
+}
+
+/* ── DESKTOP (>768px): giữ nguyên, đảm bảo không bị thu nhỏ ── */
+@media(min-width:769px){
+  .catselect-body{padding:24px 20px 80px !important;}
+  .cats-select{max-width:900px !important;}
+}
+
+
+/* ── FIX: Mobile topnav - compact layout ── */
+@media(max-width:600px){
+  .topnav{padding:8px 12px !important;flex-wrap:nowrap !important;}
+  .tnbrand{font-size:11px !important;letter-spacing:1px !important;flex-shrink:0;}
+  .tnlinks{gap:6px !important;flex-wrap:nowrap !important;align-items:center;overflow:hidden;}
+  /* Hide search on mobile */
+  .tnlinks > .tnlink[onclick*="showSearchModal"]{display:none !important;}
+  /* Language selector stays visible */
+  #lang-sel-wrap{font-size:12px !important;}
+  #user-info-nav{font-size:11px !important;gap:6px !important;}
+  .nav-hello{font-size:11px !important;}
+  .hamburger-btn{font-size:20px !important;flex-shrink:0;}
+}
+
+/* ── FIX: Chatbot icon smaller & repositioned ── */
+@media(max-width:600px){
+  #chatbot-btn{
+    width:36px !important;height:36px !important;
+    bottom:68px !important;left:8px !important;
+    opacity:0.65 !important;
+    z-index:19 !important; /* below bottom nav z-index:20 */
+  }
+  #chatbot-btn:hover,#chatbot-btn:active{opacity:1 !important;}
+  #chatbot-btn svg,#chatbot-btn img,#chatbot-btn span{
+    font-size:16px !important;
+    transform:scale(0.8);
+  }
+  .chatbot-modal{
+    bottom:110px !important;left:6px !important;
+    width:calc(100vw - 20px) !important;
+    max-width:300px !important;
+    max-height:50vh !important;
+  }
+}
+
+/* ── FIX: Globe/flag clean rendering ── */
+/* globe fix already applied above */
+@media(max-width:480px){
+  .globe{width:90px !important;height:90px !important;}
+}
+
+/* ── FIX: Search modal scrollable on mobile ── */
+.search-card{
+  max-height:85vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-width:600px){
+  .search-screen{padding:10px !important;}
+  .search-card{
+    padding:16px 14px !important;
+    max-height:90vh;
+  }
+  .search-result-title{font-size:18px !important;}
+  .search-result-summary{font-size:13px !important;}
+}
+
+/* ── FIX: Content area bottom padding for mobile ── */
+@media(max-width:600px){
+  .evbody{padding-bottom:110px !important;}
+  .journal-wrap{padding-bottom:110px !important;}
+}
+/* Quiz/story spacing */
+.story-choice-wrap,.battle-quiz{padding-bottom:30px;}
+
+/* ── FIX: Path map mobile visibility ── */
+@media(max-width:768px){
+  #s-map{overflow-y:auto !important;}
+  .reward-section{max-height:120px !important;overflow-y:auto !important;}
+  .path-map-wrap{min-height:250px !important;}
+  .path-map-viewport{min-height:250px !important;}
+  .path-arrow{z-index:10 !important;}
+}
+
+/* ── FIX: Hide login/logout from topnav on all screens ── */
+#nav-login-link{display:none !important;}
+.nav-logout{display:none !important;}
+
+/* ── FIX: Language dropdown visible on mobile ── */
+.lang-sel-wrap{overflow:visible !important;position:relative;z-index:100;}
+.lang-menu{z-index:1000 !important;}
+@media(max-width:600px){
+  .tnlinks{overflow:visible !important;}
+  .lang-menu{right:-10px !important;min-width:140px;}
+}
+
+/* ── FIX: iPad event screen scrollable ── */
+@media(min-width:601px) and (max-width:1100px){
+  #s-event{overflow:hidden !important;}
+  #s-event .evbody{
+    flex:1 !important;
+    overflow-y:auto !important;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:100px !important;
+  }
+  .evhero{flex-shrink:0;}
+  .mapbar{flex-shrink:0;}
+}
+
+/* ── FIX: Auth state CSS ── */
+body.logged-in #nav-login-link{display:none !important;}
+body:not(.logged-in) #user-info-nav{display:none !important;}
+
+/* ── FIX: Search modal scroll ── */
+.search-card{max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
