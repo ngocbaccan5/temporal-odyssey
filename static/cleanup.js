@@ -259,6 +259,17 @@
     setText('#journal-stats-summary', 'Chưa có dữ liệu trải nghiệm.');
     setText('#ev-bar-title', 'Sự Kiện');
     setText('#evhtitle', 'Trận Bạch Đằng');
+    var currentEvent = null;
+    try {
+      if (window.curEv && typeof EVS !== 'undefined' && EVS[window.curEv]) {
+        currentEvent = EVS[window.curEv];
+      }
+    } catch (error) {}
+    if (currentEvent && document.getElementById('s-event') && document.getElementById('s-event').classList.contains('active')) {
+      setText('#ev-bar-title', currentEvent.title);
+      setText('#evhtitle', currentEvent.title);
+      setText('#evhyr', currentEvent.yr);
+    }
     var cat = window.curCat || 'myth';
     var catText = cat === 'myth' ? 'HUYỀN THOẠI' : cat === 'battle' ? 'CHIẾN TRẬN' : 'TRIỀU ĐẠI';
     var diffText = cat === 'myth' ? 'DỄ' : cat === 'battle' ? 'TRUNG BÌNH' : 'KHÓ';

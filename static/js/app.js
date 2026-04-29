@@ -51,6 +51,23 @@ const CATS = {
   }
 };
 
+const LACLONG_VIDEO_ROOT = '/static/assets/videos/demo/lac-long-quan-au-co/optimized';
+const LACLONG_OPTIMIZED_AVAILABLE = true;
+const LACLONG_VIDEOS = {
+  a: {
+    url: LACLONG_VIDEO_ROOT + '/canh-a-720p.mp4',
+    fallbackUrl: ''
+  },
+  b: {
+    url: LACLONG_VIDEO_ROOT + '/canh-b-720p.mp4',
+    fallbackUrl: ''
+  },
+  c: {
+    url: LACLONG_VIDEO_ROOT + '/canh-c-720p.mp4',
+    fallbackUrl: ''
+  }
+};
+
 const EVS = {
   /* MYTH - story mode */
   laclong:{cat:'myth',em:'🌊',title:'Lạc Long Quân & Âu Cơ',yr:'Thời Sáng Thế',
@@ -60,18 +77,22 @@ const EVS = {
     choices:[
       {text:'🌊 "Chia đôi: 50 con theo cha xuống biển, 50 con theo mẹ lên núi, khi có việc thì giúp nhau"',
        correct:true,
-       videoUrl:'/static/assets/images/video-previews/laclong-a.webp',
+       videoUrl:LACLONG_VIDEOS.a.url,
+       videoFallbackUrl:LACLONG_VIDEOS.a.fallbackUrl,
        outcome:'Theo truyền thuyết, Lạc Long Quân đưa 50 người con xuống biển, Âu Cơ đưa 50 người con lên núi. Khi có việc thì giúp đỡ nhau, thể hiện nguồn gốc đoàn kết của dân tộc Việt.'},
       {text:'🏰 "Giữ tất cả 100 con lại, lập một vương quốc hùng mạnh ở đồng bằng"',
        correct:false,
-       videoUrl:'/static/assets/images/video-previews/laclong-b.webp',
+       videoUrl:LACLONG_VIDEOS.b.url,
+       videoFallbackUrl:LACLONG_VIDEOS.b.fallbackUrl,
        outcome:'Nếu giữ tất cả 100 người con ở đồng bằng, dân tộc sẽ không lan tỏa khắp núi rừng và biển cả. Câu chuyện mất đi ý nghĩa giải thích sự phân bố cư dân Việt và tinh thần đoàn kết giữa các vùng miền.'},
       {text:'📜 "Đem các con sang phương Bắc học hỏi văn hóa Trung Hoa rồi mới về dựng nước"',
        correct:false,
-       videoUrl:'/static/assets/images/video-previews/laclong-c.webp',
+       videoUrl:LACLONG_VIDEOS.c.url,
+       videoFallbackUrl:LACLONG_VIDEOS.c.fallbackUrl,
        outcome:'Đưa các con sang phương Bắc học hỏi văn hóa Trung Hoa là không đúng với tinh thần truyền thuyết. Truyện Lạc Long Quân & Âu Cơ nhấn mạnh nguồn gốc riêng, bản sắc riêng và sự gắn bó của cộng đồng người Việt.'},
     ],
-    vidUrl:'/static/assets/images/video-previews/laclong-a.webp',
+    vidUrl:LACLONG_VIDEOS.a.url,
+    vidFallbackUrl:LACLONG_VIDEOS.a.fallbackUrl,
     xp:25,explain:'Theo truyền thuyết, 50 người con theo cha xuống biển, 50 người con theo mẹ lên núi — giải thích sự phân bổ dân tộc Việt.'
   },
   autien:{cat:'myth',em:'🌾',title:'Sự Tích Bánh Chưng Bánh Dày',yr:'Đời Hùng Vương VI',
@@ -697,6 +718,60 @@ function _applyPathRoute(replace) {
   }
 }
 
+function _hasRouteAuth() {
+  return document.body.classList.contains('logged-in') ||
+    Boolean(localStorage.getItem('token')) ||
+    Boolean(localStorage.getItem('temporal_currentUser'));
+}
+
+function _runPendingRouteIfReady() {
+  if (!_hasRouteAuth()) return false;
+  if (!window._pendingRoute) _applyPathRoute(false);
+  var pending = window._pendingRoute;
+  if (typeof pending !== 'function') return false;
+  window._pendingRoute = null;
+  pending();
+  return true;
+}
+
+function _checkAuthThenApplyRoute() {
+  var authFn = window.checkAuth || checkAuth;
+  try {
+    var result = authFn && authFn();
+    if (result && typeof result.then === 'function') {
+      result.then(function(){ setTimeout(_runPendingRouteIfReady, 0); }).catch(function(){});
+    } else {
+      setTimeout(_runPendingRouteIfReady, 0);
+    }
+  } catch (error) {
+    setTimeout(_runPendingRouteIfReady, 0);
+  }
+}
+
+function _installRouteAuthHooks() {
+  if (window.checkAuth && !window.checkAuth.__routefixLaclong) {
+    var originalCheckAuth = window.checkAuth;
+    window.checkAuth = function() {
+      var result = originalCheckAuth.apply(this, arguments);
+      Promise.resolve(result).then(function(){ setTimeout(_runPendingRouteIfReady, 0); }).catch(function(){});
+      return result;
+    };
+    window.checkAuth.__routefixLaclong = true;
+  }
+  if (window.handleLogin && !window.handleLogin.__routefixLaclong) {
+    var originalHandleLogin = window.handleLogin;
+    window.handleLogin = function() {
+      var result = originalHandleLogin.apply(this, arguments);
+      Promise.resolve(result).then(function(){
+        setTimeout(_checkAuthThenApplyRoute, 0);
+        setTimeout(_runPendingRouteIfReady, 250);
+      }).catch(function(){});
+      return result;
+    };
+    window.handleLogin.__routefixLaclong = true;
+  }
+}
+
 window.addEventListener('popstate', function(e) {
   if(_routeHandling) return;
   _routeHandling = true;
@@ -901,7 +976,7 @@ function renderEvCard(eid,cat){
 ════════════════════════════════ */
 function openEv(eid, _opts){
   const e=EVS[eid]; if(!e) return;
-  curEv=eid; storyStep=0; quizPassed=false;
+  curEv=eid; curCat=e.cat; storyStep=0; quizPassed=false;
   if(!(_opts && _opts.skipRoute)) {
     var path = '/event/'+eid;
     if(window.location.pathname !== path)
@@ -925,11 +1000,12 @@ function openEv(eid, _opts){
 
   const C=CATS[cat];
   const _evVidUrl=e.vidUrl||null;
+  const _evVidFallback=e.vidFallbackUrl||null;
   let html=`<div class="event-left">
     <div class="sec-ttl">📋 Câu Chuyện Lịch Sử</div>
     <p class="story">${e.story}</p>
     <div class="sec-ttl">🎞️ Video AI Tái Hiện</div>
-    <div class="vidbox" onclick="${_evVidUrl?`_playEventVid('${_evVidUrl}')`:'playVid()'}">
+    <div class="vidbox" onclick="${_evVidUrl?`_playEventVid('${_evVidUrl}','${_evVidFallback||''}')`:'playVid()'}">
       <div class="vplaybtn">▶</div>
       <div class="vlbl">${_evVidUrl?'Xem Video Tái Hiện · Temporal Odyssey':'Xem Video Lịch Sử · AI Generated'}</div>
       <div class="vsub">~2 phút · Miễn phí</div>
@@ -954,7 +1030,7 @@ function openEv(eid, _opts){
   evBody.innerHTML=html;
   evBody.scrollTop=0;
   evEl.classList.add('active');
-  go('event',cat);
+  go('event',cat,_opts);
   requestAnimationFrame(()=>{ evBody.scrollTop=0; evEl.scrollTop=0; });
 
   if(cat==='battle') startTimer(e);
@@ -1040,7 +1116,7 @@ function _handleMythChoice(idx,choice,e){
       watchWrap.style.cssText='margin-top:12px';
       out.parentNode.insertBefore(watchWrap, out.nextSibling);
     }
-    watchWrap.innerHTML=`<button class="btn-watch-vid" onclick="_playMythBranchVid('${choice.videoUrl}')">🎬 Xem Video Giải Thích</button>`;
+    watchWrap.innerHTML=`<button class="btn-watch-vid" onclick="_playMythBranchVid('${choice.videoUrl}','${choice.videoFallbackUrl||''}')">🎬 Xem Video Giải Thích</button>`;
     // Hide quiz button and "Tiếp Theo" — only unlocked after correct choice
     const qBtn=document.querySelector('.btn-quiz');
     if(qBtn) qBtn.style.display='none';
@@ -1052,26 +1128,62 @@ function _handleMythChoice(idx,choice,e){
   }
 }
 
-function _playMythBranchVid(videoUrl){
+function _renderMediaInPlayer(player, url, opts){
+  opts = opts || {};
+  const fallback = opts.errorHtml || '<div class="vsim" style="aspect-ratio:16/9"><div class="vsim-txt">Không tải được video.</div></div>';
+  const id=opts.id||'ev-vid';
+  const fallbackUrl=opts.fallbackUrl||'';
+  player.innerHTML=`<video id="${id}" src="${url}" controls playsinline preload="metadata"
+    style="width:100%;height:100%;display:block;background:#000;object-fit:contain;border-radius:8px">
+    <p>Trình duyệt không hỗ trợ video. <a href="${url}">Tải xuống</a></p></video>`;
+  const vid=document.getElementById(id);
+  if(vid){
+    if(opts.onEnded) vid.addEventListener('ended',opts.onEnded);
+    vid.addEventListener('error',function(){
+      if(fallbackUrl && vid.dataset.fallbackTried!=='1'){
+        vid.dataset.fallbackTried='1';
+        vid.src=fallbackUrl;
+        vid.load();
+        return;
+      }
+      player.innerHTML=fallback;
+    });
+  }
+  return 'video';
+}
+
+const VIDEO_URL_CACHE = {};
+async function _resolveVideoUrl(url, fallbackUrl){
+  if(!fallbackUrl) return url;
+  const key=url+'|'+fallbackUrl;
+  if(VIDEO_URL_CACHE[key]) return VIDEO_URL_CACHE[key];
+  try{
+    const res=await fetch(url,{method:'HEAD',cache:'no-store'});
+    VIDEO_URL_CACHE[key]=res.ok?url:fallbackUrl;
+  }catch(e){
+    VIDEO_URL_CACHE[key]=fallbackUrl;
+  }
+  return VIDEO_URL_CACHE[key];
+}
+
+async function _playMythBranchVid(videoUrl, fallbackUrl){
   const e=curEv?EVS[curEv]:null;
   document.getElementById('vmod-ttl').textContent=(e?e.title:'Video')+'  —  Video Giải Thích';
   const player=document.getElementById('vmod-player');
-  player.innerHTML=`<video id="myth-vid" src="${videoUrl}" controls autoplay playsinline `
-    +`style="width:100%;height:100%;display:block;background:#000;object-fit:contain;border-radius:8px">`
-    +`<p>Trình duyệt không hỗ trợ video. <a href="${videoUrl}">Tải xuống</a></p>`
-    +`</video>`;
-  const vid=document.getElementById('myth-vid');
-  if(vid){
-    vid.addEventListener('ended',function(){ closeVid(); });
-    vid.addEventListener('error',function(){
-      player.innerHTML='<div class="vsim" style="aspect-ratio:16/9">'
-        +'<div class="vsim-txt" style="font-size:14px;color:#e8a8a8">Không tải được video.<br>'
-        +'<button class="btn-retry-myth" style="margin-top:12px" onclick="_retryMythChoice();closeVid()">🔄 Chọn Lại</button>'
-        +'</div></div>';
-    });
-  }
-  window._mythBranchActive=true;
+  player.innerHTML='<div class="vsim" style="aspect-ratio:16/9"><div class="vsim-txt">Đang chuẩn bị video...</div></div>';
   document.getElementById('vmodal').classList.add('open');
+  const resolvedUrl=await _resolveVideoUrl(videoUrl,fallbackUrl);
+  _renderMediaInPlayer(player, resolvedUrl, {
+    id:'myth-vid',
+    title:'Video giải thích',
+    fallbackUrl:fallbackUrl && resolvedUrl!==fallbackUrl ? fallbackUrl : '',
+    onEnded:function(){ closeVid(); },
+    errorHtml:'<div class="vsim" style="aspect-ratio:16/9">'
+      +'<div class="vsim-txt" style="font-size:14px;color:#e8a8a8">Không tải được video.<br>'
+      +'<button class="btn-retry-myth" style="margin-top:12px" onclick="_retryMythChoice();closeVid()">🔄 Chọn Lại</button>'
+      +'</div></div>'
+  });
+  window._mythBranchActive=true;
 }
 
 function _retryMythChoice(){
@@ -1286,29 +1398,19 @@ const YT_VIDEOS = {
   d_tayon:   'x3lnii_J9jk', d_nguyen:  '96SVntYMrPk',
 };
 
-function _playEventVid(url){
+async function _playEventVid(url, fallbackUrl){
   const e=curEv?EVS[curEv]:null;
   document.getElementById('vmod-ttl').textContent=e?e.title:'Video Lịch Sử';
   const player=document.getElementById('vmod-player');
-  if(/\.(webp|png|jpe?g|gif)(\?|$)/i.test(url)){
-    player.innerHTML=`<div class="vsim" style="aspect-ratio:16/9;padding:0;overflow:hidden;background:#05050a">
-      <img src="${url}" alt="Temporal Odyssey preview"
-        style="width:100%;height:100%;display:block;object-fit:cover">
-    </div>`;
-    document.getElementById('vmodal').classList.add('open');
-    return;
-  }
-  player.innerHTML=`<video id="ev-vid" src="${url}" controls autoplay playsinline
-    style="width:100%;height:100%;display:block;object-fit:contain;background:#000;border-radius:8px">
-    <p>Trình duyệt không hỗ trợ video.</p></video>`;
-  const vid=document.getElementById('ev-vid');
-  if(vid){
-    vid.addEventListener('ended', closeVid);
-    vid.addEventListener('error',function(){
-      player.innerHTML='<div class="vsim" style="aspect-ratio:16/9"><div class="vsim-txt">Không tải được video.</div></div>';
-    });
-  }
+  player.innerHTML='<div class="vsim" style="aspect-ratio:16/9"><div class="vsim-txt">Đang chuẩn bị video...</div></div>';
   document.getElementById('vmodal').classList.add('open');
+  const resolvedUrl=await _resolveVideoUrl(url,fallbackUrl);
+  _renderMediaInPlayer(player, resolvedUrl, {
+    id:'ev-vid',
+    title:e?e.title:'Video Lịch Sử',
+    fallbackUrl:fallbackUrl && resolvedUrl!==fallbackUrl ? fallbackUrl : '',
+    onEnded:closeVid
+  });
 }
 window._playEventVid = _playEventVid;
 
@@ -3736,14 +3838,11 @@ setupJournalBindings();
 initializeAuthUI();
 _applyPathRoute(false); // parse URL before checkAuth so _pendingRoute is ready
 setTimeout(function(){
-  (window.checkAuth || checkAuth)().then && (window.checkAuth || checkAuth)().then(function(){
-    if(window._pendingRoute){ window._pendingRoute(); window._pendingRoute=null; }
-  }).catch(function(){});
-  // Non-promise fallback: apply after a delay
-  setTimeout(function(){
-    if(window._pendingRoute){ window._pendingRoute(); window._pendingRoute=null; }
-  }, 800);
+  _installRouteAuthHooks();
+  _checkAuthThenApplyRoute();
 }, 150);
+setTimeout(function(){ _installRouteAuthHooks(); _runPendingRouteIfReady(); }, 450);
+setTimeout(function(){ _installRouteAuthHooks(); _runPendingRouteIfReady(); }, 900);
 
 // ── Explicit window exports (ensure inline onclick handlers work) ──
 window.go = go;

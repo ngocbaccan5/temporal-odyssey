@@ -51,3 +51,5 @@ logs/
 Thumbs.db
 # Large local videos - host separately or use Git LFS later
 static/assets/videos/demo/**/*.mp4
+!static/assets/videos/demo/**/optimized/
+!static/assets/videos/demo/**/optimized/*.mp4
