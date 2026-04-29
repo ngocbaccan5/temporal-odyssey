@@ -5,8 +5,8 @@
 (function () {
   'use strict';
 
-  var ICON_URL = '/static/assets/images/icons/icon1.jpg';
-  var MYTH_MAP_BG = '/static/assets/images/backgrounds/cacman.jpg';
+  var ICON_URL = '/static/assets/images/icons/icon1.webp';
+  var MYTH_MAP_BG = '/static/assets/images/backgrounds/cacman.webp';
   var GREETING_PREFIX = 'Chào bạn, tôi là trợ lý AI của Temporal Odyssey.';
 
   var CP1252 = {
@@ -446,7 +446,7 @@
   }
 
   function renderChatText(value) {
-    return escapeHtml(value)
+    return escapeHtml(fixMojibake(value))
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/\n/g, '<br>');
@@ -570,6 +570,7 @@
     fixStaticVietnamese();
     cleanLabels();
     applyIcons();
+    fixGenericTextNodes(document.body);
   }
 
   function init() {

@@ -10,8 +10,8 @@ iframe[src*="youtube.com"] {
   margin: 15px 0;
 }
 :root{
-  --ui-font:'Segoe UI',Tahoma,Verdana,Arial,sans-serif;
-  --display-font:'Trebuchet MS','Segoe UI',Tahoma,Arial,sans-serif;
+  --ui-font:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+  --display-font:'Trebuchet MS','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
   --deep:#0d0102;
   /* Huyền Thoại – tím huyền bí */
   --ht-bg1:#882e2e; --ht-bg2:#a31f1f; --ht-acc:#9b59b6; --ht-acc2:#d7b8f5; --ht-glow:rgba(155,89,182,.45);

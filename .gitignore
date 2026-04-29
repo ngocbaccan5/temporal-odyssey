@@ -22,12 +22,14 @@ env/
 
 # One-shot helper / debug scripts (not part of app)
 patch_main.py
+check_responsive.py
 .chrome-check-count-dom.html
 
 # Local backups / generated recovery files
 backups/
 private_backups/
 .codex-backups/
+screenshots/
 *.bak
 *.bak-*
 *.backup

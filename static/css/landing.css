@@ -87,17 +87,17 @@
 .cat[data-cat="myth"] .cat-img{
   background:
     linear-gradient(160deg, rgba(60,8,100,.75), rgba(20,4,45,.88)),
-    url('/static/assets/images/backgrounds/bg-landing.png') 10% 20% / cover no-repeat;
+    url('/static/assets/images/backgrounds/bg-landing.webp') 10% 20% / cover no-repeat;
 }
 .cat[data-cat="battle"] .cat-img{
   background:
     linear-gradient(160deg, rgba(120,8,16,.75), rgba(50,2,4,.88)),
-    url('/static/assets/images/backgrounds/bg-landing.png') 80% 60% / cover no-repeat;
+    url('/static/assets/images/backgrounds/bg-landing.webp') 80% 60% / cover no-repeat;
 }
 .cat[data-cat="dynasty"] .cat-img{
   background:
     linear-gradient(160deg, rgba(90,55,4,.75), rgba(38,22,2,.88)),
-    url('/static/assets/images/backgrounds/bg-landing.png') 50% 80% / cover no-repeat;
+    url('/static/assets/images/backgrounds/bg-landing.webp') 50% 80% / cover no-repeat;
 }
 
 .cat-foot{padding:10px 12px;border-top:1px solid rgba(255,255,255,.06);text-align:center;}

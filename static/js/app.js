@@ -60,18 +60,18 @@ const EVS = {
     choices:[
       {text:'🌊 "Chia đôi: 50 con theo cha xuống biển, 50 con theo mẹ lên núi, khi có việc thì giúp nhau"',
        correct:true,
-       videoUrl:'/static/assets/videos/demo/l%E1%BA%A1c%20long%20qu%C3%A2n%20%C3%A2u%20c%C6%A1/c%E1%BA%A3nh%20A.mp4',
+       videoUrl:'/static/assets/images/video-previews/laclong-a.webp',
        outcome:'Theo truyền thuyết, Lạc Long Quân đưa 50 người con xuống biển, Âu Cơ đưa 50 người con lên núi. Khi có việc thì giúp đỡ nhau, thể hiện nguồn gốc đoàn kết của dân tộc Việt.'},
       {text:'🏰 "Giữ tất cả 100 con lại, lập một vương quốc hùng mạnh ở đồng bằng"',
        correct:false,
-       videoUrl:'/static/assets/videos/demo/l%E1%BA%A1c%20long%20qu%C3%A2n%20%C3%A2u%20c%C6%A1/c%E1%BA%A3nh%20B.mp4',
+       videoUrl:'/static/assets/images/video-previews/laclong-b.webp',
        outcome:'Nếu giữ tất cả 100 người con ở đồng bằng, dân tộc sẽ không lan tỏa khắp núi rừng và biển cả. Câu chuyện mất đi ý nghĩa giải thích sự phân bố cư dân Việt và tinh thần đoàn kết giữa các vùng miền.'},
       {text:'📜 "Đem các con sang phương Bắc học hỏi văn hóa Trung Hoa rồi mới về dựng nước"',
        correct:false,
-       videoUrl:'/static/assets/videos/demo/l%E1%BA%A1c%20long%20qu%C3%A2n%20%C3%A2u%20c%C6%A1/c%E1%BA%A3nh%20C.mp4',
+       videoUrl:'/static/assets/images/video-previews/laclong-c.webp',
        outcome:'Đưa các con sang phương Bắc học hỏi văn hóa Trung Hoa là không đúng với tinh thần truyền thuyết. Truyện Lạc Long Quân & Âu Cơ nhấn mạnh nguồn gốc riêng, bản sắc riêng và sự gắn bó của cộng đồng người Việt.'},
     ],
-    vidUrl:'/static/assets/videos/demo/l%E1%BA%A1c%20long%20qu%C3%A2n%20%C3%A2u%20c%C6%A1/c%E1%BA%A3nh%20A.mp4',
+    vidUrl:'/static/assets/images/video-previews/laclong-a.webp',
     xp:25,explain:'Theo truyền thuyết, 50 người con theo cha xuống biển, 50 người con theo mẹ lên núi — giải thích sự phân bổ dân tộc Việt.'
   },
   autien:{cat:'myth',em:'🌾',title:'Sự Tích Bánh Chưng Bánh Dày',yr:'Đời Hùng Vương VI',
@@ -1290,6 +1290,14 @@ function _playEventVid(url){
   const e=curEv?EVS[curEv]:null;
   document.getElementById('vmod-ttl').textContent=e?e.title:'Video Lịch Sử';
   const player=document.getElementById('vmod-player');
+  if(/\.(webp|png|jpe?g|gif)(\?|$)/i.test(url)){
+    player.innerHTML=`<div class="vsim" style="aspect-ratio:16/9;padding:0;overflow:hidden;background:#05050a">
+      <img src="${url}" alt="Temporal Odyssey preview"
+        style="width:100%;height:100%;display:block;object-fit:cover">
+    </div>`;
+    document.getElementById('vmodal').classList.add('open');
+    return;
+  }
   player.innerHTML=`<video id="ev-vid" src="${url}" controls autoplay playsinline
     style="width:100%;height:100%;display:block;object-fit:contain;background:#000;border-radius:8px">
     <p>Trình duyệt không hỗ trợ video.</p></video>`;

@@ -2239,3 +2239,56 @@ body::before { opacity: .15 !important; }
     margin-top: 18px !important;
   }
 }
+
+/* --------------------------------------
+   RESPONSIVE1 — AUTHORITATIVE BREAKPOINTS
+   (last in file — wins cascade over all prior grid defs)
+   desktop >= 1024px  2-col
+   tablet  769-1023px 1-col
+   mobile  <= 768px   1-col
+-------------------------------------- */
+
+/* Tablet + Mobile: force single-column event layout */
+@media (max-width: 1023px) {
+  #s-event .evbody {
+    display: block !important;
+    grid-template-columns: none !important;
+    max-width: min(720px, calc(100% - 24px)) !important;
+    padding: 16px 14px 100px !important;
+  }
+  #s-event .event-right {
+    position: static !important;
+    margin-top: 16px !important;
+    padding: 0 !important;
+  }
+  #s-event .event-left {
+    padding: 0 !important;
+  }
+}
+
+/* Mobile <= 768px: tighter padding + tap targets */
+@media (max-width: 768px) {
+  #s-event .evbody {
+    padding: 12px 12px 100px !important;
+    max-width: 100% !important;
+  }
+  #s-event .evhero {
+    height: 130px !important;
+    min-height: 130px !important;
+  }
+  #s-event .choice-btn {
+    min-height: 48px !important;
+    font-size: 15px !important;
+  }
+  #s-event .bq-opt {
+    min-height: 48px !important;
+    font-size: 14px !important;
+  }
+  #s-event .story {
+    font-size: 15px !important;
+    line-height: 1.8 !important;
+  }
+  #vmodal .vmod {
+    max-width: 96vw !important;
+  }
+}
