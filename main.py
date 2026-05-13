@@ -147,8 +147,7 @@ _ALLOWED_ORIGIN_REGEX = os.getenv(
 _ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1")
 if _RENDER_EXTERNAL_HOSTNAME:
     _ALLOWED_HOSTS.append(_RENDER_EXTERNAL_HOSTNAME)
-if _IS_PRODUCTION or _RENDER_EXTERNAL_HOSTNAME:
-    _ALLOWED_HOSTS.append("*.onrender.com")
+_ALLOWED_HOSTS.append("*.onrender.com")
 _ALLOWED_HOSTS = _unique(_ALLOWED_HOSTS)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
