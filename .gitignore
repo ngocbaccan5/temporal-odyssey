@@ -29,6 +29,8 @@ check_responsive.py
 backups/
 private_backups/
 .codex-backups/
+.codex-chrome-profile-*/
+_archive/
 screenshots/
 *.bak
 *.bak-*

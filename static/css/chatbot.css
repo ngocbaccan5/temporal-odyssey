@@ -137,3 +137,56 @@
 
 
 /* ══════════════════════════════════════════════
+/* ════════════════════════════════════════════════════
+   CHATBOT — Final overrides (moved from cleanup.js)
+   Loaded after base chatbot.css rules; takes precedence
+   over earlier rules via cascade + !important.
+   ════════════════════════════════════════════════════ */
+#chatbot-btn{
+  position:fixed !important;
+  left:14px !important;
+  bottom:72px !important;
+  width:62px !important;
+  height:62px !important;
+  z-index:100101 !important;
+  pointer-events:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:50% !important;
+  background:linear-gradient(145deg,rgba(18,22,40,.96),rgba(44,18,64,.96)) !important;
+  border:1px solid rgba(201,168,76,.28) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06) !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
+  overflow:hidden !important;
+}
+
+#chatbot-btn .asset-icon{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  box-shadow:0 0 0 2px rgba(240,208,128,.42), 0 8px 18px rgba(0,0,0,.26) !important;
+}
+
+.chatbot-modal{
+  left:14px !important;
+  bottom:136px !important;
+  width:min(360px, calc(100vw - 28px)) !important;
+  max-height:min(520px, calc(100vh - 170px)) !important;
+  z-index:100100 !important;
+  pointer-events:auto !important;
+}
+
+.chatbot-messages{
+  min-height:0 !important;
+}
+
+.chat-bubble{
+  word-break:break-word;
+}
+
+/* Hide auto-generated greeting bot bubble; chatbot.js renders its own */
+#chatbot-msgs .chat-msg.bot[data-auto-greeting]{
+  display:none !important;
+}

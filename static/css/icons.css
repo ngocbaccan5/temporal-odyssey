@@ -1,0 +1,87 @@
+/* ════════════════════════════════════════════════════
+   ICON LAYER — Asset-based icon replacements
+   ----------------------------------------------------
+   Previously injected at runtime by cleanup.js.
+   Loaded as a static stylesheet so cascade is predictable.
+   ════════════════════════════════════════════════════ */
+
+.asset-icon {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
+  display: inline-block;
+  vertical-align: -0.12em;
+  box-shadow: 0 0 10px rgba(201, 168, 76, 0.28);
+}
+
+/* Brand icons in top navigation and side menu */
+.tnbrand .asset-icon,
+.side-menu-brand .asset-icon {
+  width: 38px;
+  height: 38px;
+  margin-right: 10px;
+  flex: 0 0 auto;
+}
+
+/* Chatbot title small icon */
+.chatbot-title .asset-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
+}
+
+/* Category card emoji frame */
+.cat-em .asset-icon {
+  width: 74px;
+  height: 74px;
+  border: 2px solid rgba(240, 208, 128, 0.65);
+}
+
+/* Bottom-nav icon — emoji glyph hidden, asset icon centered */
+.bni-ic {
+  width: 38px !important;
+  height: 38px !important;
+}
+.bni-ic::after {
+  display: none !important;
+}
+.bni-ic .asset-icon {
+  width: 34px;
+  height: 34px;
+}
+
+/* HUD chips and headline icons */
+.diff-icon .asset-icon,
+.pw-icon .asset-icon,
+.pay-hero-icon .asset-icon,
+.pay-card-icon .asset-icon,
+.pay-success-icon .asset-icon {
+  width: 30px;
+  height: 30px;
+}
+
+/* Event hero glyph */
+#evhem .asset-icon {
+  width: 70px;
+  height: 70px;
+  border: 2px solid rgba(240, 208, 128, 0.55);
+}
+
+/* Path map node circle */
+.path-node-circle .asset-icon {
+  width: 52px;
+  height: 52px;
+  border: 2px solid rgba(240, 208, 128, 0.75);
+  box-shadow:
+    0 0 0 3px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(240, 208, 128, 0.35);
+}
+
+/* Reward badges */
+.badge-item .asset-icon {
+  width: 34px;
+  height: 34px;
+  margin-bottom: 3px;
+}

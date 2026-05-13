@@ -155,6 +155,7 @@ static/assets/
 | FFmpeg | Xử lý video | ffmpeg.org |
 | SVGOMG | Tối ưu SVG | jakearchibald.github.io/svgomg |
 | Remove.bg | Xóa nền ảnh logo | remove.bg |
+
 | Canva | Tạo banner/screen demo | canva.com |
 
 ---

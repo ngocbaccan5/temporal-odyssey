@@ -148,3 +148,41 @@
 .badge-item.locked-b{opacity:.3;filter:grayscale(1);}
 .badge-lbl{font-size:19px;color:#7a6a7a;letter-spacing:.3px;text-align:center;line-height:1.2;}
 
+
+/* ════════════════════════════════════════════════════
+   MAP — Reward section overrides (moved from cleanup.js)
+   These tighten layout/spacing over the base rules above.
+   ════════════════════════════════════════════════════ */
+#s-map .reward-section{
+  width:min(960px, calc(100% - 32px)) !important;
+  max-width:960px !important;
+  margin:10px auto 0 !important;
+  padding:10px 14px !important;
+  border-radius:18px !important;
+  background:rgba(12,13,24,.68) !important;
+  border:1px solid rgba(240,208,128,.18) !important;
+  backdrop-filter:blur(10px);
+  box-shadow:0 12px 28px rgba(0,0,0,.25) !important;
+}
+#s-map .reward-ttl{
+  font-size:12px !important;
+  color:#f0d080 !important;
+  letter-spacing:1.4px !important;
+  margin:0 0 8px !important;
+  text-align:left !important;
+}
+#s-map .badges-row{
+  justify-content:center;
+  gap:14px !important;
+}
+#s-map .badge-item{
+  min-width:92px !important;
+  padding:8px 10px !important;
+  background:rgba(255,255,255,.06) !important;
+  border:1px solid rgba(240,208,128,.14) !important;
+}
+#s-map .badge-lbl{
+  font-size:12px !important;
+  color:#f8eac5 !important;
+  line-height:1.25 !important;
+}

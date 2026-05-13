@@ -1,79 +1,67 @@
 /* ════════════════════════════════════════════════════════════════
    Temporal Odyssey — API Layer
-   Thay thế Firebase & localStorage bằng FastAPI backend.
-   File này được load cuối cùng, override tất cả hàm auth/profile.
+   ────────────────────────────────────────────────────────────────
+   Loaded AFTER app.js. Overrides these window-level functions so
+   they talk to the FastAPI backend instead of localStorage stubs:
+     handleLogin, handleRegister, handleLogout, checkAuth,
+     persistCurrentProfile, awardXp, consumeFreePlay, logExperience,
+     getPlayedCount, recordPlay, redeemXP, renderLeaderboard,
+     renderJournalHistory, renderJournalScreen, secretAdminLogin,
+     renderAdminPanel, adminDeleteUser, adminClearAllData, activatePlan.
+
+   AUTH STORAGE (post-cleanup, 2 keys only):
+     - sessionStorage.to_token   ← session bearer token
+     - sessionStorage.to_user    ← session username
+     - localStorage.token        ← persisted bearer (survives close-tab)
+     - localStorage.temporal_currentUser ← persisted username
+
+   Migration runs once on load: legacy localStorage.access_token
+   is copied to localStorage.token then removed.
    ════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
-  // ── Token & State ──
-  const LEGACY_USER_KEY = 'temporal_currentUser';
-  let _token = sessionStorage.getItem('to_token') ||
-    localStorage.getItem('token') ||
-    localStorage.getItem('access_token') ||
-    '';
-  let _username = sessionStorage.getItem('to_user') ||
-    localStorage.getItem(LEGACY_USER_KEY) ||
-    '';
-  let _cachedProfile = null;
-  let _playedCache = {};
-  const rawFetch = window.fetch.bind(window);
-
-  function clientLog(type, detail) {
-    var payload = JSON.stringify({
-      type: type,
-      path: window.location.pathname,
-      detail: detail || {}
-    });
+  // ── One-time migration: drop legacy access_token zombie key ──
+  (function migrateLegacyAuth() {
     try {
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon('/api/client-log', new Blob([payload], { type: 'application/json' }));
-        return;
+      var legacy = localStorage.getItem('access_token');
+      if (legacy && !localStorage.getItem('token')) {
+        localStorage.setItem('token', legacy);
       }
-    } catch (e) { /* fallback below */ }
+      if (legacy) localStorage.removeItem('access_token');
+    } catch (e) { /* storage blocked: ignore */ }
+  })();
 
-    rawFetch('/api/client-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payload,
-      keepalive: true
-    }).catch(function () {});
+  // ── Token & State ──
+  function readPersistedAuth() {
+    var token = sessionStorage.getItem('to_token') || localStorage.getItem('token') || '';
+    var username = sessionStorage.getItem('to_user') || localStorage.getItem('temporal_currentUser') || '';
+    if (!token) username = '';
+    return { token: token, username: username };
   }
 
-  window.fetch = async function () {
-    var input = arguments[0];
-    var opts = arguments[1] || {};
-    var url = typeof input === 'string' ? input : (input && input.url) || '';
-    var method = (opts.method || (input && input.method) || 'GET').toUpperCase();
+  let _persistedAuth = readPersistedAuth();
+  let _token = _persistedAuth.token;
+  let _username = _persistedAuth.username;
+  let _cachedProfile = null;
+  let _playedCache = {};
 
-    try {
-      var res = await rawFetch.apply(null, arguments);
-      if (String(url).indexOf('/api/client-log') === -1) {
-        clientLog('fetch', { method: method, url: String(url), status: res.status });
-      }
-      return res;
-    } catch (e) {
-      if (String(url).indexOf('/api/client-log') === -1) {
-        clientLog('fetch-error', { method: method, url: String(url), text: e.message || 'fetch failed' });
-      }
-      throw e;
+  function syncAuthStorage() {
+    if (_token && _username) {
+      sessionStorage.setItem('to_token', _token);
+      sessionStorage.setItem('to_user', _username);
+      localStorage.setItem('token', _token);
+      localStorage.setItem('temporal_currentUser', _username);
+      return;
     }
-  };
 
-  window.addEventListener('load', function () {
-    clientLog('load', { url: window.location.href, status: 'loaded' });
-  });
+    sessionStorage.removeItem('to_token');
+    sessionStorage.removeItem('to_user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('temporal_currentUser');
+  }
 
-  document.addEventListener('click', function (event) {
-    var target = event.target.closest('button,[onclick],a,.cat,.path-node,.bni,.tnlink,.side-menu-item,.choice-btn');
-    if (!target) return;
-    clientLog('click', {
-      tag: target.tagName,
-      id: target.id || '',
-      text: (target.innerText || target.getAttribute('aria-label') || '').trim().slice(0, 90),
-      onclick: target.getAttribute('onclick') || ''
-    });
-  }, true);
+  syncAuthStorage();
 
   // ── API helper ──
   async function api(url, opts) {
@@ -99,11 +87,7 @@
   function setAuth(token, username) {
     _token = token;
     _username = username;
-    sessionStorage.setItem('to_token', token);
-    sessionStorage.setItem('to_user', username);
-    localStorage.setItem('token', token);
-    localStorage.setItem('access_token', token);
-    localStorage.setItem(LEGACY_USER_KEY, username);
+    syncAuthStorage();
   }
 
   function clearAuth() {
@@ -111,11 +95,7 @@
     _username = '';
     _cachedProfile = null;
     _playedCache = {};
-    sessionStorage.removeItem('to_token');
-    sessionStorage.removeItem('to_user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem(LEGACY_USER_KEY);
+    syncAuthStorage();
   }
 
   // ══════════════════════════════════════
@@ -196,6 +176,7 @@
     if (_token && _username) {
       try {
         var p = await api('/api/profile');
+        syncAuthStorage();
         _cachedProfile = p;
         _playedCache = p.played || {};
         window.xp = p.xp;
@@ -218,6 +199,9 @@
             document.getElementById('s-journal').classList.contains('active') &&
             typeof renderJournalScreen === 'function') {
           renderJournalScreen();
+        }
+        if (typeof window._runPendingRouteIfReady === 'function') {
+          setTimeout(function () { window._runPendingRouteIfReady(); }, 0);
         }
         return;
       } catch (e) {
@@ -568,8 +552,6 @@
   //  INIT — chạy checkAuth sau khi override
   // ══════════════════════════════════════
 
-  setTimeout(function () {
-    (window.checkAuth || checkAuth)();
-  }, 250);
+  setTimeout(checkAuth, 250);
 
 })();

@@ -1,7 +1,7 @@
-﻿"""
+"""
 Temporal Odyssey — FastAPI Server
 """
-import logging, os, re, secrets, time, unicodedata, httpx
+import os, httpx
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -9,11 +9,10 @@ load_dotenv()
 
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy.orm import Session
@@ -27,99 +26,59 @@ from schemas import (
     QuizRequest, QuizAnswer
 )
 
-ENV = os.getenv("ENV", "development").strip().lower()
-IS_PRODUCTION = ENV == "production"
-REQUEST_LOGGER = logging.getLogger("uvicorn.error")
-
-
-def _bool_env(name: str, default: bool = False) -> bool:
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    return raw.strip().lower() in {"1", "true", "yes", "on"}
-
-
-def _csv_env(name: str, default: str = "") -> list[str]:
-    raw = os.getenv(name, default)
-    return [item.strip() for item in raw.split(",") if item.strip()]
-
-
-API_RATE_LIMIT = os.getenv("API_RATE_LIMIT", "120/minute")
-LOGIN_RATE_LIMIT = os.getenv("LOGIN_RATE_LIMIT", "10/minute")
-REGISTER_RATE_LIMIT = os.getenv("REGISTER_RATE_LIMIT", "5/minute")
-CHAT_RATE_LIMIT = os.getenv("CHAT_RATE_LIMIT", "15/minute")
-ADMIN_RATE_LIMIT = os.getenv("ADMIN_RATE_LIMIT", "3/minute")
-MAX_REQUEST_BYTES = int(os.getenv("MAX_REQUEST_BYTES", "1048576"))
-ENABLE_CSP = _bool_env("ENABLE_CSP", True)
-AI_HTTP_TIMEOUT_SECONDS = float(os.getenv("AI_HTTP_TIMEOUT_SECONDS", "2"))
-AI_TOTAL_TIMEOUT_SECONDS = float(os.getenv("AI_TOTAL_TIMEOUT_SECONDS", "3"))
-
-SHOW_DOCS = _bool_env("SHOW_DOCS", not IS_PRODUCTION)
-DEBUG_HTTP_LOG = _bool_env("DEBUG_HTTP_LOG", False)
-SEED_DEMO_USERS = _bool_env("SEED_DEMO_USERS", not IS_PRODUCTION)
-ENABLE_ADMIN_BOOTSTRAP = _bool_env("ENABLE_ADMIN_BOOTSTRAP", not IS_PRODUCTION)
-CORS_ALLOW_CREDENTIALS = _bool_env("CORS_ALLOW_CREDENTIALS", False)
-ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "")
-ALLOWED_ORIGINS = _csv_env(
-    "ALLOWED_ORIGINS",
-    "http://localhost:8000,http://127.0.0.1:8000,http://localhost:5500,http://127.0.0.1:5500"
-)
-
-ADMIN_KEY = os.getenv("ADMIN_KEY", "").strip()
-_WEAK_SECRET_MARKERS = ("changeme", "change-this", "your-", "placeholder", "admin_2026", "admin123")
-if IS_PRODUCTION:
-    if not ALLOWED_HOSTS:
-        raise RuntimeError("ALLOWED_HOSTS must be set in production.")
-    if not ALLOWED_ORIGINS or "*" in ALLOWED_ORIGINS:
-        raise RuntimeError("ALLOWED_ORIGINS must list explicit HTTPS origins in production.")
-    if any(not origin.startswith("https://") for origin in ALLOWED_ORIGINS):
-        raise RuntimeError("ALLOWED_ORIGINS must use HTTPS in production.")
-    if len(ADMIN_KEY) < 32 or any(marker in ADMIN_KEY.lower() for marker in _WEAK_SECRET_MARKERS):
-        raise RuntimeError("ADMIN_KEY must be set to a strong random value in production.")
-else:
-    ADMIN_KEY = ADMIN_KEY or "dev-admin-key-change-me"
+ADMIN_KEY = os.getenv("ADMIN_KEY", "temporal_admin_2026")
+_IS_PRODUCTION = os.getenv("ENV", "development").lower() == "production"
+_SEED_DEMO_USERS = os.getenv("SEED_DEMO_USERS", "false").lower() in ("1", "true", "yes")
+_ENABLE_ADMIN_BOOTSTRAP = os.getenv("ENABLE_ADMIN_BOOTSTRAP", "false").lower() in ("1", "true", "yes")
 
 # ── Rate Limiter ──
-limiter = Limiter(key_func=get_remote_address, default_limits=[API_RATE_LIMIT])
-
-
-class SafeStaticFiles(StaticFiles):
-    async def get_response(self, path: str, scope):
-        normalized = path.replace("\\", "/").lower()
-        parts = normalized.split("/")
-        blocked_suffixes = (".env", ".db", ".sqlite", ".sqlite3", ".bak", ".backup", ".recovery")
-        blocked_markers = (".bak-", ".bak_", "~")
-        if (
-            any(part.startswith(".") for part in parts)
-            or normalized.endswith(blocked_suffixes)
-            or any(marker in normalized for marker in blocked_markers)
-        ):
-            raise StarletteHTTPException(status_code=404)
-        return await super().get_response(path, scope)
+limiter = Limiter(key_func=get_remote_address, default_limits=["120/minute"])
 
 
 # ── Startup / Shutdown ──
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: create tables + seed demo user
     init_db()
     db = SessionLocal()
     try:
-        if SEED_DEMO_USERS and not db.query(User).filter(User.username == "datascience").first():
-            db.add(User(
-                username="datascience",
-                hashed_password=hash_password("uneti"),
-                xp=120,
-                free_left=5,
-                is_admin=False,
-            ))
+        # Demo accounts — only when explicitly enabled (never in production)
+        if _SEED_DEMO_USERS:
+            if not db.query(User).filter(User.username == "datascience").first():
+                db.add(User(
+                    username="datascience",
+                    hashed_password=hash_password("uneti"),
+                    xp=120, free_left=5
+                ))
+            for tname, tpass in [("tester1","test2026"),("tester2","test2026"),("tester3","test2026")]:
+                if not db.query(User).filter(User.username == tname).first():
+                    db.add(User(
+                        username=tname,
+                        hashed_password=hash_password(tpass),
+                        xp=9999, free_left=99, is_admin=True
+                    ))
+
+        # Admin bootstrap — only when explicitly enabled (never in production)
+        if _ENABLE_ADMIN_BOOTSTRAP:
+            if not db.query(User).filter(User.username == "admin").first():
+                _admin_pass = os.getenv("ADMIN_BOOTSTRAP_PASSWORD", "")
+                if not _admin_pass:
+                    raise RuntimeError(
+                        "ENABLE_ADMIN_BOOTSTRAP=true requires ADMIN_BOOTSTRAP_PASSWORD env var"
+                    )
+                db.add(User(
+                    username="admin",
+                    hashed_password=hash_password(_admin_pass),
+                    xp=9999, free_left=99, is_admin=True
+                ))
+
         db.commit()
     finally:
         db.close()
-    if DEBUG_HTTP_LOG:
-        REQUEST_LOGGER.warning("[HTTP] request logger enabled")
     yield
 
+
+_docs_url = None if _IS_PRODUCTION else "/docs"
+_redoc_url = None if _IS_PRODUCTION else "/redoc"
 
 app = FastAPI(
     title="Temporal Odyssey API",
@@ -130,8 +89,14 @@ app = FastAPI(
 - Đăng ký/Đăng nhập để nhận **JWT Bearer Token**
 - Gửi header: `Authorization: Bearer <token>`
 
-### Demo accounts
-Demo seeding is controlled by `SEED_DEMO_USERS` and is disabled by default in production.
+### Tài khoản test
+| Username | Password | XP | Free Plays | Admin |
+|---|---|---|---|---|
+| `admin` | `admin2026` | 9999 | 99 (∞) | ✅ |
+| `tester1` | `test2026` | 9999 | 99 (∞) | ✅ |
+| `tester2` | `test2026` | 9999 | 99 (∞) | ✅ |
+| `tester3` | `test2026` | 9999 | 99 (∞) | ✅ |
+| `datascience` | `uneti` | 120 | 5 | ❌ |
 
 ### Luồng chơi game
 1. **POST /api/login** → Nhận token
@@ -143,139 +108,40 @@ Demo seeding is controlled by `SEED_DEMO_USERS` and is disabled by default in pr
 - 50 XP → 3 lượt | 100 XP → 8 lượt | 200 XP → 99 lượt (∞)
 """,
     version="2.0.0",
-    docs_url="/docs" if SHOW_DOCS else None,
-    redoc_url="/redoc" if SHOW_DOCS else None,
+    docs_url=_docs_url,
+    redoc_url=_redoc_url,
     lifespan=lifespan
 )
 
 app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# ── CORS / Trusted Hosts / Security Headers ──
+_ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000"
+).split(",")
+_ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
-        status_code=429,
-        content={"detail": "Too many requests. Please try again later."},
-    )
-
-
-app.add_exception_handler(RateLimitExceeded, rate_limit_handler)
-
-if ALLOWED_HOSTS:
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
-
-# ── CORS: cho phép domain thật khi deploy, wildcard chỉ dùng local ──
+app.mount("/static", StaticFiles(directory="static"), name="static")
+if _ALLOWED_HOSTS:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=_ALLOWED_HOSTS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=CORS_ALLOW_CREDENTIALS,
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
 
 
 @app.middleware("http")
-async def enforce_request_size(request: Request, call_next):
-    content_length = request.headers.get("content-length")
-    if content_length:
-        try:
-            if int(content_length) > MAX_REQUEST_BYTES:
-                return JSONResponse(
-                    {"detail": "Request body too large"},
-                    status_code=413,
-                )
-        except ValueError:
-            return JSONResponse(
-                {"detail": "Invalid Content-Length"},
-                status_code=400,
-            )
-    return await call_next(request)
-
-
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
+async def security_headers(request: Request, call_next):
     response = await call_next(request)
-    response.headers.setdefault("X-Content-Type-Options", "nosniff")
-    response.headers.setdefault("X-Frame-Options", "DENY")
-    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
-    response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
-    response.headers.setdefault(
-        "Permissions-Policy",
-        "camera=(), microphone=(), geolocation=()",
-    )
-    if ENABLE_CSP:
-        response.headers.setdefault(
-            "Content-Security-Policy",
-            "default-src 'self'; "
-            "base-uri 'self'; "
-            "object-src 'none'; "
-            "frame-ancestors 'none'; "
-            "img-src 'self' data: blob:; "
-            "media-src 'self' blob:; "
-            "style-src 'self' 'unsafe-inline'; "
-            "script-src 'self' 'unsafe-inline'; "
-            "connect-src 'self'; "
-            "frame-src https://www.youtube-nocookie.com;"
-        )
-    if IS_PRODUCTION:
-        response.headers.setdefault(
-            "Strict-Transport-Security",
-            "max-age=31536000; includeSubDomains",
-        )
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
-
-
-@app.middleware("http")
-async def log_http_requests(request: Request, call_next):
-    if not DEBUG_HTTP_LOG:
-        return await call_next(request)
-
-    started = time.perf_counter()
-    path = request.url.path
-    if request.url.query:
-        path = f"{path}?[query]"
-
-    try:
-        response = await call_next(request)
-    except Exception:
-        elapsed_ms = (time.perf_counter() - started) * 1000
-        REQUEST_LOGGER.warning("[HTTP] %s %s -> 500 (%.1f ms)", request.method, path, elapsed_ms)
-        raise
-
-    elapsed_ms = (time.perf_counter() - started) * 1000
-    REQUEST_LOGGER.warning("[HTTP] %s %s -> %s (%.1f ms)", request.method, path, response.status_code, elapsed_ms)
-    return response
-
-
-@app.post("/api/client-log")
-@limiter.limit(API_RATE_LIMIT)
-async def client_log(request: Request):
-    if not DEBUG_HTTP_LOG:
-        return {"ok": True}
-
-    try:
-        payload = await request.json()
-    except Exception:
-        payload = {}
-
-    event_type = str(payload.get("type") or "event")[:32]
-    path = str(payload.get("path") or "")[:160]
-    detail = payload.get("detail") or {}
-    if not isinstance(detail, dict):
-        detail = {"value": str(detail)[:160]}
-
-    summary_bits = []
-    for key in ("method", "url", "status", "tag", "id", "text", "onclick"):
-        value = detail.get(key)
-        if value not in (None, ""):
-            text = str(value)[:120]
-            if any(marker in f"{key}={text}".lower() for marker in ("token", "key", "password", "secret", "authorization")):
-                text = "[redacted]"
-            summary_bits.append(f"{key}={text}")
-
-    summary = " ".join(summary_bits) if summary_bits else str(detail)[:220]
-    REQUEST_LOGGER.warning("[CLIENT] %s path=%s %s", event_type, path, summary)
-    return {"ok": True}
 
 
 # ══════════════════════════════════════
@@ -283,7 +149,7 @@ async def client_log(request: Request):
 # ══════════════════════════════════════
 
 @app.post("/api/register", response_model=TokenResponse, tags=["Auth"], summary="Đăng ký tài khoản mới")
-@limiter.limit(REGISTER_RATE_LIMIT)
+@limiter.limit("5/minute")
 async def register(request: Request, data: UserRegister, db: Session = Depends(get_db)):
     """
     Tạo tài khoản mới và nhận JWT token.
@@ -316,7 +182,7 @@ async def register(request: Request, data: UserRegister, db: Session = Depends(g
 
 
 @app.post("/api/login", response_model=TokenResponse, tags=["Auth"], summary="Đăng nhập")
-@limiter.limit(LOGIN_RATE_LIMIT)
+@limiter.limit("60/minute")
 async def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     """
     Đăng nhập và nhận JWT Bearer token.
@@ -379,8 +245,9 @@ async def update_profile(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if IS_PRODUCTION and not user.is_admin:
-        raise HTTPException(403, "Direct profile mutation is disabled in production")
+    # XP and free_left are privileged fields — admin only
+    if (data.xp is not None or data.free_left is not None) and not user.is_admin:
+        raise HTTPException(403, "Chỉ admin mới được cập nhật XP hoặc lượt chơi")
     if data.xp is not None:
         user.xp = max(0, min(data.xp, 999999))
     if data.free_left is not None:
@@ -399,6 +266,10 @@ async def award_xp(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # In production: only admin can call this endpoint directly.
+    # In development: any authenticated user may call it (for local testing).
+    if _IS_PRODUCTION and not user.is_admin:
+        raise HTTPException(403, "XP chỉ được cộng qua server trong production")
     amount = max(0, min(data.amount, 500))
     user.xp = min(user.xp + amount, 999999)
 
@@ -544,16 +415,14 @@ async def get_leaderboard(db: Session = Depends(get_db)):
 # ══════════════════════════════════════
 
 @app.post("/api/admin/verify", tags=["Admin"], summary="Xác thực quyền admin")
-@limiter.limit(ADMIN_RATE_LIMIT)
+@limiter.limit("3/minute")
 async def admin_verify(
     request: Request,
     data: AdminVerify,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not ENABLE_ADMIN_BOOTSTRAP:
-        raise HTTPException(403, "Admin bootstrap is disabled")
-    if not secrets.compare_digest(data.password, ADMIN_KEY):
+    if data.password != ADMIN_KEY:
         raise HTTPException(403, "Sai mã truy cập")
     user.is_admin = True
     db.commit()
@@ -618,61 +487,15 @@ SYSTEM_PROMPT = (
 )
 
 
-CHAT_FALLBACKS = {
-    "lac long quan": "Lạc Long Quân là nhân vật truyền thuyết gắn với nguồn gốc dân tộc Việt. Ông kết duyên với Âu Cơ, sinh bọc trăm trứng; 50 người con theo cha xuống biển, 50 người con theo mẹ lên núi.",
-    "au co": "Âu Cơ là tiên nữ trong truyền thuyết Con Rồng Cháu Tiên. Bà cùng Lạc Long Quân sinh ra bọc trăm trứng, biểu tượng cho nguồn gốc chung và tinh thần đoàn kết của người Việt.",
-    "hung vuong": "Các vua Hùng gắn với thời Văn Lang, truyền thuyết dựng nước và nhiều câu chuyện như bánh chưng bánh dày, Sơn Tinh Thủy Tinh, Thánh Gióng.",
-    "son tinh": "Sơn Tinh Thủy Tinh giải thích hiện tượng lũ lụt và khát vọng trị thủy của cư dân nông nghiệp.",
-    "thanh giong": "Thánh Gióng là biểu tượng chống ngoại xâm trong truyền thuyết Việt Nam. Hình tượng cậu bé vươn vai thành tráng sĩ nhấn mạnh sức mạnh cộng đồng khi đất nước lâm nguy.",
-    "bach dang": "Bạch Đằng năm 938 do Ngô Quyền chỉ huy là chiến thắng chấm dứt hơn một nghìn năm Bắc thuộc, nổi bật với chiến thuật cọc gỗ kết hợp thủy triều.",
-    "hai ba trung": "Hai Bà Trưng khởi nghĩa năm 40 SCN chống ách đô hộ Đông Hán, là biểu tượng tiêu biểu về tinh thần độc lập và vai trò phụ nữ trong lịch sử Việt Nam.",
-    "tran hung dao": "Trần Hưng Đạo là danh tướng thời Trần, chỉ huy kháng chiến chống Nguyên Mông. Ông gắn với Hịch tướng sĩ và chiến thắng Bạch Đằng năm 1288.",
-    "le loi": "Lê Lợi lãnh đạo khởi nghĩa Lam Sơn chống quân Minh, giành thắng lợi và lập nhà Lê sơ năm 1428. Nguyễn Trãi thay ông viết Bình Ngô đại cáo.",
-}
-
-
-def _normalize_chat_text(text: str) -> str:
-    text = unicodedata.normalize("NFD", text.lower())
-    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
-    text = text.replace("đ", "d")
-    return re.sub(r"[^a-z0-9\s]", " ", text)
-
-
-def matched_history_reply(message: str) -> str | None:
-    normalized = _normalize_chat_text(message)
-    for key, answer in CHAT_FALLBACKS.items():
-        if key in normalized:
-            return answer
-    return None
-
-
-def local_history_reply(message: str) -> str:
-    matched = matched_history_reply(message)
-    if matched:
-        return matched
-    normalized = _normalize_chat_text(message)
-    if any(token in normalized for token in ("lich su", "viet nam", "truyen thuyet", "van hoa", "chien tran", "trieu dai", "huyen thoai")):
-        return (
-            "Mình có thể hỗ trợ các chủ đề lịch sử Việt Nam như Huyền Thoại, Chiến Trận và Triều Đại. "
-            "Bạn có thể hỏi về Lạc Long Quân, Âu Cơ, vua Hùng, Bạch Đằng, Hai Bà Trưng, Trần Hưng Đạo hoặc Lê Lợi."
-        )
-    return (
-        "Mình là trợ lý lịch sử Việt Nam, nên chỉ trả lời các câu hỏi liên quan đến lịch sử, văn hóa và truyền thuyết Việt Nam. "
-        "Bạn hãy thử hỏi về một nhân vật, sự kiện hoặc triều đại Việt Nam."
-    )
-
 @app.post("/api/chat", tags=["AI Chat"], summary="Chat với AI lịch sử")
-@limiter.limit(CHAT_RATE_LIMIT)
+@limiter.limit("15/minute")
 async def ai_chat(req: ChatRequest, request: Request):
     import asyncio
+    if not GEMINI_KEY:
+        raise HTTPException(503, "AI chưa được cấu hình. Thêm GEMINI_API_KEY vào .env")
     user_msg = req.message.strip()
     if not user_msg or len(user_msg) > 500:
         raise HTTPException(400, "Tin nhắn không hợp lệ")
-    local_match = matched_history_reply(user_msg)
-    if local_match:
-        return {"reply": local_match, "source": "local_fallback"}
-    if not GEMINI_KEY:
-        return {"reply": local_history_reply(user_msg), "source": "local_fallback"}
 
     # Gemini models support system_instruction; Gemma models don't
     payload_with_sys = {
@@ -686,30 +509,27 @@ async def ai_chat(req: ChatRequest, request: Request):
     }
 
     last_error = None
-    deadline = time.monotonic() + AI_TOTAL_TIMEOUT_SECONDS
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=20) as client:
         for model in GEMINI_MODELS:
-            if time.monotonic() >= deadline:
-                last_error = "overall timeout"
-                break
             url = f"{GEMINI_BASE}/{model}:generateContent?key={GEMINI_KEY}"
             is_gemma = model.startswith("gemma")
             payload = payload_no_sys if is_gemma else payload_with_sys
-            for attempt in range(1):
+            for attempt in range(2):
                 try:
-                    remaining = max(0.5, min(AI_HTTP_TIMEOUT_SECONDS, deadline - time.monotonic()))
-                    resp = await client.post(url, json=payload, timeout=remaining)
+                    resp = await client.post(url, json=payload)
                     if resp.status_code == 200:
                         data = resp.json()
                         text = data["candidates"][0]["content"]["parts"][0]["text"]
                         return {"reply": text}
                     last_error = f"{model}: HTTP {resp.status_code}"
+                    if resp.status_code == 503:
+                        await asyncio.sleep(1 + attempt)
+                        continue
                     break
                 except Exception as e:
                     last_error = f"{model}: {type(e).__name__}"
 
-    REQUEST_LOGGER.warning("[AI] Gemini unavailable, using local fallback: %s", last_error)
-    return {"reply": local_history_reply(user_msg), "source": "local_fallback"}
+    raise HTTPException(502, f"AI tạm thời không khả dụng. ({last_error})")
 
 
 # ══════════════════════════════════════
@@ -848,8 +668,6 @@ async def check_quiz(
 # ══════════════════════════════════════
 
 static_dir = os.path.join(os.path.dirname(__file__), "static")
-if os.path.isdir(static_dir):
-    app.mount("/static", SafeStaticFiles(directory=static_dir), name="static")
 
 
 @app.get("/")
@@ -862,25 +680,25 @@ async def serve_index():
         )
     return {"message": "Temporal Odyssey API", "docs": "/docs"}
 
+
 @app.get("/{full_path:path}", include_in_schema=False)
 async def spa_fallback(full_path: str):
-    """SPA catch-all: serve index.html for any unknown frontend path."""
-    if full_path.startswith("api/") or full_path == "api":
+    """SPA catch-all: serve index.html for any unknown frontend path.
+    API and static paths are NOT served here — they're handled earlier."""
+    if full_path.startswith("api/") or full_path.startswith("api"):
         from fastapi.responses import JSONResponse
         return JSONResponse({"detail": "Not Found"}, status_code=404)
     if full_path.startswith("static/"):
         from fastapi.responses import JSONResponse
         return JSONResponse({"detail": "Not Found"}, status_code=404)
-    import os as _os
-    _idx = _os.path.join(_os.path.dirname(__file__), "static", "index.html")
-    if _os.path.isfile(_idx):
+    index_path = os.path.join(static_dir, "index.html")
+    if os.path.isfile(index_path):
         return FileResponse(
-            _idx, media_type="text/html",
+            index_path, media_type="text/html",
             headers={"Cache-Control": "no-cache, no-store, must-revalidate"}
         )
     from fastapi.responses import JSONResponse
     return JSONResponse({"detail": "Not Found"}, status_code=404)
-
 
 
 # ══════════════════════════════════════

@@ -1,12 +1,24 @@
 /*
-   Temporal Odyssey - Vietnamese text, asset icon, and assistant UI cleanup.
-   Loaded after app.js and api-layer.js so it can normalize static and dynamic UI.
+   Temporal Odyssey — Runtime cleanup layer.
+   ─────────────────────────────────────────
+   Loaded AFTER app.js + api-layer.js. Responsibilities:
+     1. Mojibake repair for Vietnamese strings (fixMojibake / normalizeAppData).
+     2. Static text normalization (fixStaticVietnamese) for hand-coded HTML.
+     3. Asset icon replacement: swaps emojis/glyphs with /static/assets/images/icons/icon-2.jpg.
+     4. Chatbot UX patch: greeting dedupe, fallback send, message rendering.
+     5. Wraps window.go / window.openEv so cleanup re-runs after every navigation.
+     6. MutationObserver re-runs runCleanup whenever DOM mutates.
+
+   CSS RULES NO LONGER LIVE HERE.
+     • Icon sizing/borders → /static/css/icons.css
+     • #chatbot-btn, .chatbot-modal, .chatbot-messages → /static/css/chatbot.css
+     • #s-map reward-section / badges → /static/css/map.css
+     • #s-map.theme-myth background → /static/css/ui-fixes.css (already had it)
 */
 (function () {
   'use strict';
 
-  var ICON_URL = '/static/assets/images/icons/icon1.webp';
-  var MYTH_MAP_BG = '/static/assets/images/backgrounds/cacman.webp';
+  var ICON_URL = '/static/assets/images/icons/icon-2.jpg?v=icon2-1';
   var GREETING_PREFIX = 'Chào bạn, tôi là trợ lý AI của Temporal Odyssey.';
 
   var CP1252 = {
@@ -74,9 +86,25 @@
     return img;
   }
 
+  function syncIconImg(img, className) {
+    if (!img) return null;
+    img.src = ICON_URL;
+    img.alt = '';
+    img.className = 'asset-icon ' + (className || '');
+    img.loading = 'lazy';
+    return img;
+  }
+
   function replaceWithIcon(selector, className) {
     document.querySelectorAll(selector).forEach(function (el) {
-      if (el.querySelector('img.asset-icon')) return;
+      var existing = el.querySelector(':scope > img.asset-icon');
+      if (existing) {
+        Array.from(el.childNodes).forEach(function (node) {
+          if (node !== existing) node.remove();
+        });
+        syncIconImg(existing, className);
+        return;
+      }
       el.textContent = '';
       el.appendChild(iconImg(className));
     });
@@ -84,55 +112,31 @@
 
   function prependIcon(selector, className) {
     document.querySelectorAll(selector).forEach(function (el) {
-      if (el.querySelector(':scope > img.asset-icon')) return;
+      var existing = el.querySelector(':scope > img.asset-icon');
+      if (existing) {
+        syncIconImg(existing, className);
+        return;
+      }
       el.insertBefore(iconImg(className), el.firstChild);
     });
   }
 
   function setIconText(selector, text, className) {
     document.querySelectorAll(selector).forEach(function (el) {
-      var img = el.querySelector(':scope > img.asset-icon') || iconImg(className || 'brand-icon');
+      var img = syncIconImg(el.querySelector(':scope > img.asset-icon'), className || 'brand-icon') || iconImg(className || 'brand-icon');
       el.textContent = '';
       el.appendChild(img);
       el.appendChild(document.createTextNode(text));
     });
   }
 
-  function injectStyles() {
-    if (document.getElementById('to-cleanup-style')) return;
-    var style = document.createElement('style');
-    style.id = 'to-cleanup-style';
-    style.textContent = [
-      'html,body,input,button,select,textarea{font-family:"Segoe UI",Tahoma,Verdana,Arial,sans-serif!important;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;}',
-      '.asset-icon{width:1em;height:1em;border-radius:50%;object-fit:cover;object-position:center;display:inline-block;vertical-align:-.12em;box-shadow:0 0 10px rgba(201,168,76,.28);}',
-      '.tnbrand .asset-icon,.side-menu-brand .asset-icon{width:38px;height:38px;margin-right:10px;flex:0 0 auto;}',
-      '#chatbot-btn{width:58px!important;height:58px!important;z-index:100101!important;pointer-events:auto!important;}',
-      '#chatbot-btn .asset-icon{width:54px;height:54px;}',
-      '.chatbot-title .asset-icon{width:22px;height:22px;margin-right:8px;}',
-      '.cat-em .asset-icon{width:74px;height:74px;border:2px solid rgba(240,208,128,.65);}',
-      '.bni-ic{width:38px!important;height:38px!important;}',
-      '.bni-ic::after{display:none!important;}',
-      '.bni-ic .asset-icon{width:34px;height:34px;}',
-      '.diff-icon .asset-icon,.pw-icon .asset-icon,.pay-hero-icon .asset-icon,.pay-card-icon .asset-icon,.pay-success-icon .asset-icon{width:30px;height:30px;}',
-      '#evhem .asset-icon{width:70px;height:70px;border:2px solid rgba(240,208,128,.55);}',
-      '.path-node-circle .asset-icon{width:52px;height:52px;border:2px solid rgba(240,208,128,.75);box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 14px rgba(240,208,128,.35);}',
-      '#s-map .reward-section{width:min(960px,calc(100% - 32px))!important;max-width:960px!important;margin:10px auto 0!important;padding:10px 14px!important;border-radius:18px!important;background:rgba(12,13,24,.68)!important;border:1px solid rgba(240,208,128,.18)!important;backdrop-filter:blur(10px);box-shadow:0 12px 28px rgba(0,0,0,.25)!important;}',
-      '#s-map .reward-ttl{font-size:12px!important;color:#f0d080!important;letter-spacing:1.4px!important;margin:0 0 8px!important;text-align:left!important;}',
-      '#s-map .badges-row{justify-content:center;gap:14px!important;}',
-      '#s-map .badge-item{min-width:92px!important;padding:8px 10px!important;background:rgba(255,255,255,.06)!important;border:1px solid rgba(240,208,128,.14)!important;}',
-      '#s-map .badge-lbl{font-size:12px!important;color:#f8eac5!important;line-height:1.25!important;}',
-      '.badge-item .asset-icon{width:34px;height:34px;margin-bottom:3px;}',
-      '.chatbot-modal{left:14px!important;bottom:136px!important;width:min(360px,calc(100vw - 28px))!important;max-height:min(520px,calc(100vh - 170px))!important;z-index:100100!important;pointer-events:auto!important;}',
-      '.chatbot-messages{min-height:0!important;}',
-      '.chat-bubble{word-break:break-word;}',
-      '#s-map.theme-myth{background:linear-gradient(180deg,rgba(18,5,15,.38),rgba(18,5,15,.88)),url("' + MYTH_MAP_BG + '") center center/cover no-repeat!important;}',
-      '#s-map.theme-myth .path-map-wrap,#s-map.theme-myth .path-map-viewport,#s-map.theme-myth .path-map-canvas{background:transparent!important;}',
-      '#s-map.theme-myth .path-map-viewport::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,5,15,.18),rgba(18,5,15,.72));z-index:0;pointer-events:none;}',
-      '#s-map.theme-myth .path-map-canvas{z-index:1;}',
-      '#chatbot-msgs .chat-msg.bot[data-auto-greeting]{display:none!important;}'
-    ].join('\n');
-    document.head.appendChild(style);
-  }
+  // All previously injected CSS now lives in static stylesheets:
+  //   icons.css   — .asset-icon family
+  //   chatbot.css — #chatbot-btn / .chatbot-modal final layout
+  //   map.css     — #s-map .reward-section / .badges / .badge-item
+  //   ui-fixes.css — #s-map.theme-myth background (cacman.webp)
+  // Keeping the function as a no-op so any external caller is safe.
+  function injectStyles() { /* CSS moved to /static/css/*.css */ }
 
   function normalizeDataObject(root) {
     if (!root || typeof root !== 'object') return;
@@ -196,40 +200,40 @@
     setText('#slang-fr .slang-name', 'Français');
     setText('#spanel-lang > div:first-child', 'Chọn ngôn ngữ hiển thị trong ứng dụng.');
     setText('#s-catselect .topnav > div:last-child', 'Chọn hành trình');
-    setText('.catselect-title', 'Chọn Hành Trình Của Bạn');
-    setText('.catselect-sub', 'Mỗi con đường có cách chơi, độ khó và phần thưởng riêng');
+    setText('.catselect-title', 'Chọn Hành Trình');
+    setText('.catselect-sub', 'Bắc đây.');
     setText('#cs-myth .cat-name', 'Huyền Thoại');
     setText('#cs-battle .cat-name', 'Chiến Trận');
     setText('#cs-dynasty .cat-name', 'Triều Đại');
-    setText('#cs-myth-status', 'Mở khóa');
-    setText('#cs-battle-status', 'Cần Huyền Thoại bàn 15');
-    setText('#cs-dynasty-status', 'Cần Chiến Trận bàn 15 + Huyền Thoại bàn 30');
+    setText('#cs-myth-status', 'Vào hành trình');
+    setText('#cs-battle-status', 'Đang phát triển');
+    setText('#cs-dynasty-status', 'Đang phát triển');
     document.querySelectorAll('.cat[data-cat="myth"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Dễ';
-      if (meta[1]) meta[1].textContent = 'Kể Chuyện';
+      if (meta[0]) meta[0].textContent = 'Dễ bắt đầu';
+      if (meta[1]) meta[1].textContent = 'Kể chuyện tương tác';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Huyền Thoại';
       var pill = cat.querySelector('.cat-pill');
-      if (pill) pill.textContent = pill.classList.contains('cat-status') ? 'Mở khóa' : 'Khám Phá';
+      if (pill) pill.textContent = pill.classList.contains('cat-status') ? 'Vào hành trình' : 'Khám Phá';
     });
     document.querySelectorAll('.cat[data-cat="battle"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Vừa';
-      if (meta[1]) meta[1].textContent = 'Tốc Độ';
+      if (meta[0]) meta[0].textContent = 'Sẽ mở sau';
+      if (meta[1]) meta[1].textContent = 'Quiz tốc độ';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Chiến Trận';
       var pill = cat.querySelector('.cat-pill');
-      if (pill && !cat.querySelector('.cat-locked-overlay')) pill.textContent = 'Khám Phá';
+      if (pill) pill.textContent = 'Đang phát triển';
     });
     document.querySelectorAll('.cat[data-cat="dynasty"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Khó';
-      if (meta[1]) meta[1].textContent = 'Timeline';
+      if (meta[0]) meta[0].textContent = 'Sẽ mở sau';
+      if (meta[1]) meta[1].textContent = 'Timeline lịch sử';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Triều Đại';
       var pill = cat.querySelector('.cat-pill');
-      if (pill && !cat.querySelector('.cat-locked-overlay')) pill.textContent = 'Khám Phá';
+      if (pill) pill.textContent = 'Đang phát triển';
     });
     setText('.tnlink[onclick*="showSearchModal"]', 'Tìm Kiếm');
     var langToggle = document.querySelector('#lang-sel-wrap > span[onclick]');
@@ -305,14 +309,14 @@
     if (planNames[1]) planNames[1].textContent = 'Người Khám Phá';
     document.querySelectorAll('.plan-feats > div').forEach(function (el) {
       var text = stripEmoji(el.textContent);
-      if (/Video/i.test(text)) el.lastChild.textContent = 'Video AI chất lượng cao';
-      else if (/huy/i.test(text)) el.lastChild.textContent = 'Tất cả huy hiệu';
-      else if (/x.p h.ng|xếp hạng/i.test(text)) el.lastChild.textContent = 'Bảng xếp hạng toàn quốc';
-      else if (/qu.ng|c.o/i.test(text)) el.lastChild.textContent = 'Không quảng cáo';
-      else if (/Ch.n|danh/i.test(text)) el.lastChild.textContent = 'Chọn 1 danh mục - 20 sự kiện';
+      if (/To.n b.|50\+/i.test(text)) el.lastChild.textContent = 'Toàn bộ 3 danh mục · 50+ sự kiện';
+      else if (/Ch.n 1|20 s/i.test(text)) el.lastChild.textContent = 'Chọn 1 danh mục · 20 sự kiện';
+      else if (/Video.*cao|ch.t lu.ng/i.test(text)) el.lastChild.textContent = 'Video AI chất lượng cao';
       else if (/co b.n|cơ bản/i.test(text)) el.lastChild.textContent = 'Video cơ bản';
-      else if (/To.n|50/i.test(text)) el.lastChild.textContent = 'Toàn bộ 3 danh mục - 50+ sự kiện';
+      else if (/huy hi.u|huy$/i.test(text)) el.lastChild.textContent = 'Tất cả huy hiệu';
+      else if (/x.p h.ng to|xếp hạng to/i.test(text)) el.lastChild.textContent = 'Bảng xếp hạng toàn quốc';
       else if (/Kh.ng c.|Không có/i.test(text)) el.lastChild.textContent = 'Không có bảng xếp hạng';
+      else if (/qu.ng c.o|quảng cáo/i.test(text)) el.lastChild.textContent = 'Không quảng cáo';
     });
     setText('#vmod-ttl', 'Video Lịch Sử');
     setText('#vsim-txt', 'Đang tải...');
@@ -394,11 +398,26 @@
       if (el.classList.contains('path-arrow-r') || el.id === 'path-next') el.textContent = '›';
     });
     document.querySelectorAll('.badge-item').forEach(function (item) {
-      if (!item.querySelector(':scope > img.asset-icon')) item.insertBefore(iconImg('badge-icon'), item.firstChild);
+      var badgeIcon = item.querySelector(':scope > img.asset-icon');
+      if (badgeIcon) syncIconImg(badgeIcon, 'badge-icon');
+      else item.insertBefore(iconImg('badge-icon'), item.firstChild);
       Array.from(item.childNodes).forEach(function (node) {
         if (node.nodeType === Node.TEXT_NODE) node.textContent = '';
       });
     });
+  }
+
+  function syncChatbotVisibility() {
+    var isCatselectActive = !!document.querySelector('#s-catselect.active');
+    var chatbotButton = document.getElementById('chatbot-btn');
+    var chatbotModal = document.getElementById('chatbot-modal');
+    if (chatbotButton) {
+      chatbotButton.style.setProperty('display', isCatselectActive ? 'none' : 'flex', 'important');
+      chatbotButton.style.setProperty('visibility', 'visible', 'important');
+      chatbotButton.style.setProperty('opacity', '1', 'important');
+      chatbotButton.style.setProperty('pointer-events', isCatselectActive ? 'none' : 'auto', 'important');
+    }
+    if (chatbotModal && isCatselectActive) chatbotModal.classList.remove('open');
   }
 
   function getScreenLabel(screen, cat) {
@@ -410,6 +429,15 @@
     if (screen === 'admin') return 'màn quản trị';
     return 'Temporal Odyssey';
   }
+
+  // ══════════════════════════════════════════════════════════════
+  // CHATBOT SUBSECTION
+  // ──────────────────────────────────────────────────────────────
+  // Reuses helpers above: normalizeText / fixMojibake / stripEmoji /
+  // GREETING_PREFIX / getScreenLabel. Functions in this section can
+  // later be lifted into static/js/chatbot.js once helpers are
+  // exposed as window.__toUtils. Until then, keep them in this file.
+  // ══════════════════════════════════════════════════════════════
 
   function dedupeChatbotGreeting() {
     var msgs = document.getElementById('chatbot-msgs');
@@ -516,7 +544,8 @@
       window.__chatBusy = true;
       try {
         var headers = { 'Content-Type': 'application/json' };
-        var token = sessionStorage.getItem('to_token') || localStorage.getItem('token') || localStorage.getItem('access_token') || '';
+        // Matches the storage strategy in api-layer.js (session first, then persisted).
+        var token = sessionStorage.getItem('to_token') || localStorage.getItem('token') || '';
         if (token) headers.Authorization = 'Bearer ' + token;
         var res = await fetch('/api/chat', {
           method: 'POST',
@@ -565,14 +594,41 @@
     }
   }
 
+  // Containers that get re-rendered at runtime by app.js / api-layer.js / chatbot.
+  // Observing each one individually instead of document.body massively reduces
+  // observer callbacks and prevents runCleanup() from re-running on every
+  // unrelated DOM tweak (chip updates, toast renders, etc.).
+  var DYNAMIC_TARGET_IDS = [
+    'path-canvas',
+    'evbody',
+    'chatbot-msgs',
+    'admin-user-list',
+    'leaderboard-list',
+    'journal-history-list'
+  ];
+
   function observeDynamic() {
     if (window.__toCleanupObserver) return;
     var timer = null;
-    window.__toCleanupObserver = new MutationObserver(function () {
+    var observer = new MutationObserver(function () {
       clearTimeout(timer);
       timer = setTimeout(runCleanup, 80);
     });
-    window.__toCleanupObserver.observe(document.body, { childList: true, subtree: true });
+    var attached = 0;
+    DYNAMIC_TARGET_IDS.forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) {
+        observer.observe(node, { childList: true, subtree: true });
+        attached++;
+      }
+    });
+    // Also watch screen switching at a shallow depth so that screens
+    // re-rendered after route changes get one cleanup pass too.
+    var screensRoot = document.getElementById('screens') || document.body;
+    observer.observe(screensRoot, { childList: true, subtree: false });
+    attached++;
+    window.__toCleanupObserver = observer;
+    window.__toCleanupObserverTargets = attached;
   }
 
   function runCleanup() {
@@ -581,6 +637,7 @@
     fixStaticVietnamese();
     cleanLabels();
     applyIcons();
+    syncChatbotVisibility();
     fixGenericTextNodes(document.body);
   }
 

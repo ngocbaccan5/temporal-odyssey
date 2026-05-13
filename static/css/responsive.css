@@ -91,15 +91,15 @@
 /* ── PAYWALL / PAYMENT ── */
 @media(max-width:480px){
   .pw-title{font-size:clamp(16px,5vw,22px) !important;}
-  .pw-desc{font-size:14px !important;}
-  .plan{padding:12px 14px !important;}
+  .pw-desc{font-size:13px !important;}
+  .plan{padding:14px 14px 12px !important;}
   .plan-name{font-size:14px !important;}
   .plan-price{font-size:18px !important;}
-  .plan-feats{font-size:13px !important;}
+  .plan-feats{font-size:12px !important;}
   .plans{flex-direction:column !important;}
-  .xp-redeem-row{flex-direction:column !important;align-items:center;}
-  .xp-redeem-opt{max-width:100% !important;width:80% !important;}
-  .payment-body{padding:12px 12px 60px !important;}
+  .xp-redeem-row{grid-template-columns:1fr !important;}
+  .xp-redeem-opt{max-width:100% !important;}
+  .payment-body{padding:12px 12px calc(env(safe-area-inset-bottom, 0px) + 80px) !important;}
   .pay-form-card{padding:14px !important;}
   .pay-input{font-size:14px !important;}
   .pay-confirm-btn{font-size:14px !important;padding:12px !important;}

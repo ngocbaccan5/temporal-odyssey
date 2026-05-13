@@ -29,7 +29,7 @@
   position:relative;
   z-index:1;
   width:min(100%,460px);
-  padding:34px 28px 28px;
+  padding:24px 24px 20px;
   border-radius:26px;
   border:1px solid rgba(255,220,136,.28);
   background:linear-gradient(180deg, rgba(45,6,9,.8), rgba(18,3,5,.92));
@@ -38,7 +38,7 @@
 }
 .auth-hero{
   text-align:center;
-  margin-bottom:20px;
+  margin-bottom:14px;
 }
 .auth-kicker{
   display:inline-flex;

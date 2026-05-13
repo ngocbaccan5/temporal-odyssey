@@ -1,3 +1,28 @@
+/* ════════════════════════════════════════════════════════════════
+   Temporal Odyssey — app.js (frontend core)
+   ────────────────────────────────────────────────────────────────
+   Load order in index.html: app.js → api-layer.js → cleanup.js → catselect-polish.js
+   (all <script defer>).
+
+   FUNCTIONS DEFINED HERE BUT OVERRIDDEN AT RUNTIME (do NOT trust the
+   body of these functions when debugging behaviour — see notes):
+     • handleLogin / handleRegister / handleLogout   → api-layer.js
+     • checkAuth                                     → api-layer.js
+     • awardXp / consumeFreePlay / logExperience     → api-layer.js
+     • getPlayedCount / recordPlay                   → api-layer.js
+     • renderLeaderboard / renderJournalScreen       → api-layer.js
+     • renderJournalHistory                          → api-layer.js
+     • secretAdminLogin / renderAdminPanel           → api-layer.js
+     • activatePlan / redeemXP / persistCurrentProfile→ api-layer.js
+     • window.go / window.openEv                     → wrapped by cleanup.js
+                                                       (post-nav cleanup pass)
+     • window.sendChat                               → cleanup.js
+
+   AUTH STORAGE (canonical layout after api-layer migration):
+     sessionStorage.to_token / to_user        ← per-tab session
+     localStorage.token / temporal_currentUser ← persistent
+   ════════════════════════════════════════════════════════════════ */
+
 /* ════════════════════════════════
    DATA
 ════════════════════════════════ */
@@ -719,19 +744,64 @@ function _applyPathRoute(replace) {
 }
 
 function _hasRouteAuth() {
+  // Auth signals after the storage consolidation in api-layer.js:
+  //   - body.logged-in (set by api-layer.checkAuth on success)
+  //   - sessionStorage to_token / to_user (session-scoped)
+  //   - localStorage token / temporal_currentUser (persisted across tabs)
   return document.body.classList.contains('logged-in') ||
+    Boolean(sessionStorage.getItem('to_token')) ||
+    Boolean(sessionStorage.getItem('to_user')) ||
     Boolean(localStorage.getItem('token')) ||
     Boolean(localStorage.getItem('temporal_currentUser'));
 }
 
+function _canRenderCurrentPathWithoutAuth() {
+  var parts = window.location.pathname.replace(/^\//, '').split('/');
+  var seg0 = parts[0] || '';
+  var seg1 = parts[1] || '';
+  if (seg0 === 'event' && seg1 && EVS[seg1]) return true;
+  return false;
+}
+
 function _runPendingRouteIfReady() {
-  if (!_hasRouteAuth()) return false;
   if (!window._pendingRoute) _applyPathRoute(false);
+  if (!_hasRouteAuth() && !_canRenderCurrentPathWithoutAuth()) return false;
   var pending = window._pendingRoute;
   if (typeof pending !== 'function') return false;
   window._pendingRoute = null;
   pending();
   return true;
+}
+
+function _ensureRouteScreenVisible() {
+  var parts = window.location.pathname.replace(/^\//, '').split('/');
+  var seg0 = parts[0] || '';
+  var seg1 = parts[1] || '';
+  var activeScreens = Array.from(document.querySelectorAll('.screen.active'));
+  var eventScreen = document.getElementById('s-event');
+  var authScreen = getAuthScreen();
+  var evBody = document.getElementById('evbody');
+  var hasEventContent = Boolean(evBody && evBody.children.length);
+
+  if (seg0 === 'event' && seg1 && EVS[seg1]) {
+    if (!eventScreen || !eventScreen.classList.contains('active') || !hasEventContent) {
+      openEv(seg1, { skipRoute: true });
+      return true;
+    }
+    return false;
+  }
+
+  if (!activeScreens.length) {
+    if (_hasRouteAuth()) {
+      if (_runPendingRouteIfReady()) return true;
+      go('landing', '', { skipRoute: true });
+      return true;
+    }
+    showAuthScreen('login');
+    return true;
+  }
+
+  return false;
 }
 
 function _checkAuthThenApplyRoute() {
@@ -831,6 +901,12 @@ function renderPathMap(cat){
   });
 
   const total=allEvents.length;
+  const unlockedTotal=allEvents.reduce((count, ev)=>{
+    const eventItem=EVS[ev.eid];
+    return count + (eventItem && !eventItem.locked ? 1 : 0);
+  }, 0);
+  const completedCount=Math.max(0, Math.min(getPlayedCount(cat), unlockedTotal));
+  const currentUnlockedOrder=completedCount < unlockedTotal ? completedCount : -1;
   // Update nav: hide arrows, show total
   document.getElementById('path-prev').style.display='none';
   document.getElementById('path-next').style.display='none';
@@ -843,25 +919,26 @@ function renderPathMap(cat){
     dynasty:'linear-gradient(135deg,#5a3800,#c9a84c)'
   };
   const bg=bgMap[cat];
+  const shortViewport=window.innerHeight<520;
 
   // NODE SIZE & SPACING
   const NODE_W=120;
-  const H=Math.max(window.innerHeight - 160, 280);
+  const H=Math.max(window.innerHeight - (shortViewport ? 120 : 160), shortViewport ? 250 : 280);
   const canvasW=Math.max(window.innerWidth, total*NODE_W+80);
   const canvas=document.getElementById('path-canvas');
   canvas.style.height=H+'px';
   canvas.style.width=canvasW+'px';
 
   // Y flowing river path - organic wave, not strict zigzag
-  const yCenter=H*0.44;
-  const amplitude=H*0.22;
+  const yCenter=H*(shortViewport ? 0.36 : 0.44);
+  const amplitude=H*(shortViewport ? 0.16 : 0.22);
   const positions=allEvents.map((_,i)=>{
     // Use sine wave with varying frequency for organic feel
     const phase = i * 0.85 + Math.sin(i*0.3)*0.4;
     const y = yCenter + Math.sin(phase) * amplitude;
     return {
       x: 40 + i*NODE_W + NODE_W/2 - 10,
-      y: Math.max(H*0.12, Math.min(H*0.76, y))
+      y: Math.max(H*(shortViewport ? 0.14 : 0.12), Math.min(H*(shortViewport ? 0.58 : 0.76), y))
     };
   });
 
@@ -877,22 +954,22 @@ function renderPathMap(cat){
   }
 
   const svg=positions.length>1?`
-  <svg style="position:absolute;top:0;left:0;width:${canvasW}px;height:100%;pointer-events:none"
+  <svg class="path-svg path-svg--${cat}" style="position:absolute;top:0;left:0;width:${canvasW}px;height:100%;pointer-events:none"
     xmlns="http://www.w3.org/2000/svg">
     <defs>
-      <filter id="hg2"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <linearGradient id="hg2grad" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="${acc}" stop-opacity="0.3"/>
-        <stop offset="100%" stop-color="${acc}" stop-opacity="0.85"/>
+      <filter id="path-glow-${cat}"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <linearGradient id="path-grad-${cat}" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${acc}" stop-opacity="0.24"/>
+        <stop offset="100%" stop-color="${acc}" stop-opacity="0.72"/>
       </linearGradient>
     </defs>
-    <path d="${pathD}" fill="none" stroke="${acc}" stroke-width="12" opacity="0.1" stroke-linecap="round"/>
-    <path d="${pathD}" fill="none" stroke="url(#hg2grad)" stroke-width="5"
-      stroke-dasharray="16 8" stroke-linecap="round" filter="url(#hg2)" opacity="0.7"/>
+    <path class="path-line path-line-halo" d="${pathD}" fill="none" stroke="${acc}" stroke-width="10" opacity="0.08" stroke-linecap="round"/>
+    <path class="path-line path-line-main" d="${pathD}" fill="none" stroke="url(#path-grad-${cat})" stroke-width="4"
+      stroke-dasharray="14 10" stroke-linecap="round" filter="url(#path-glow-${cat})" opacity="0.58"/>
     ${positions.slice(0,-1).map((p,i)=>{
       const nx=positions[i+1]; const mx=(p.x+nx.x)/2; const my=(p.y+nx.y)/2;
-      return `<circle cx="${mx}" cy="${my}" r="3.5" fill="${acc}" opacity="0.4"/>
-              <circle cx="${mx}" cy="${my}" r="1.5" fill="#fff" opacity="0.6"/>`;
+      return `<circle class="path-dot path-dot-outer" cx="${mx}" cy="${my}" r="3.25" fill="${acc}" opacity="0.28"/>
+              <circle class="path-dot path-dot-inner" cx="${mx}" cy="${my}" r="1.35" fill="#fff" opacity="0.42"/>`;
     }).join('')}
   </svg>`:'';
 
@@ -924,22 +1001,30 @@ function renderPathMap(cat){
   });
 
   // Nodes
+  let unlockedOrder=0;
   const nodes=allEvents.map((ev,i)=>{
     const e=EVS[ev.eid]; if(!e) return '';
     const p=positions[i];
     const isLocked=!!e.locked;
-    const isTop=p.y<H*0.5;
+    const labelAbove=p.y>H*0.48;
+    let stateClass='';
+    if(!isLocked){
+      if(unlockedOrder < completedCount) stateClass=' done';
+      else if(unlockedOrder === currentUnlockedOrder) stateClass=' current';
+      else stateClass=' open';
+      unlockedOrder++;
+    }
     const click=isLocked?`onclick="needPay()"`:
       (freeLeft<=0&&freeLeft!==99)?`onclick="go('pay','')"`:`onclick="openEv('${ev.eid}')"`;
-    return `<div class="path-node${isLocked?' locked':''} ${isTop?'node-top':'node-bot'}"
+    return `<div class="path-node${isLocked?' locked':''}${stateClass} ${labelAbove?'node-top':'node-bot'}"
       style="left:${p.x}px;top:${p.y}px" ${click}>
-      <div class="path-node-circle" style="background:${bg};width:64px;height:64px">
-        <span style="font-size:22px;line-height:1">${e.em}</span>
-        <div class="path-node-num" style="font-size:10px;width:18px;height:18px">${i+1}</div>
-        ${isLocked?'<div class="path-lock" style="font-size:16px">🔒</div>':''}
+      <div class="path-node-circle" style="background:${bg}">
+        <span class="path-node-em">${e.em}</span>
+        <div class="path-node-num">${i+1}</div>
+        ${isLocked?'<div class="path-lock">🔒</div>':''}
       </div>
-      <div class="path-node-label" style="max-width:90px;font-size:11px">${e.title}</div>
-      <div class="path-node-yr" style="font-size:10px">${e.yr}</div>
+      <div class="path-node-label">${e.title}</div>
+      <div class="path-node-yr">${e.yr}</div>
     </div>`;
   }).join('');
 
@@ -993,37 +1078,62 @@ function openEv(eid, _opts){
   document.getElementById('evhbg').style.background=e.bg||'#0d0102';
   document.getElementById('ev-bar-title').textContent=e.title;
 
-  const modeLabel={myth:'📿 Kể Chuyện',battle:'⏳ Quiz Tốc Độ',dynasty:'🗓️ Sắp Xếp Timeline'};
-  document.getElementById('ev-bar-mode').textContent=modeLabel[cat]||'';
+  const modeLabel={myth:'Kể Chuyện',battle:'Quiz Tốc Độ',dynasty:'Sắp Xếp Timeline'};
+  const modeText=modeLabel[cat]||'Sự kiện';
+  const categoryText=getCategoryDisplayName(cat);
+  document.getElementById('ev-bar-mode').textContent=modeText;
   document.getElementById('ev-nav-back').onclick=()=>go('map',cat);
   document.getElementById('ev-back').onclick=()=>go('map',cat);
 
   const C=CATS[cat];
   const _evVidUrl=e.vidUrl||null;
   const _evVidFallback=e.vidFallbackUrl||null;
-  let html=`<div class="event-left">
-    <div class="sec-ttl">📋 Câu Chuyện Lịch Sử</div>
-    <p class="story">${e.story}</p>
-    <div class="sec-ttl">🎞️ Video AI Tái Hiện</div>
-    <div class="vidbox" onclick="${_evVidUrl?`_playEventVid('${_evVidUrl}','${_evVidFallback||''}')`:'playVid()'}">
-      <div class="vplaybtn">▶</div>
-      <div class="vlbl">${_evVidUrl?'Xem Video Tái Hiện · Temporal Odyssey':'Xem Video Lịch Sử · AI Generated'}</div>
-      <div class="vsub">~2 phút · Miễn phí</div>
+  let html=`<div class="event-shell event-shell--${cat}">
+    <div class="event-shell__header">
+      <div class="event-shell__badge" aria-hidden="true">
+        <span class="event-shell__glyph">${escapeHtml(e.em||'✦')}</span>
+      </div>
+      <div class="event-shell__header-copy">
+        <div class="event-shell__eyebrow">${escapeHtml(categoryText)} · ${escapeHtml(modeText)}</div>
+        <h1 class="event-shell__title">${escapeHtml(e.title)}</h1>
+        <div class="event-shell__subtitle">${escapeHtml(e.yr)}</div>
+      </div>
     </div>
-  </div>
-  <div class="event-right">`;
+    <div class="event-panel-grid">
+      <div class="event-left">
+        <section class="event-card event-card--story">
+          <div class="sec-ttl">Câu Chuyện Lịch Sử</div>
+          <div class="story event-story-copy">${escapeHtml(e.story)}</div>
+        </section>
+        <section class="event-card event-card--video">
+          <div class="sec-ttl">Video AI Tái Hiện</div>
+          <div class="vidbox" onclick="${_evVidUrl?`_playEventVid('${_evVidUrl}','${_evVidFallback||''}')`:'playVid()'}">
+            <div class="vidbox-media" style="background:${e.bg||'radial-gradient(ellipse at 50% 30%,#2c214f,#0b1020)'}">
+              <div class="vidbox-chip">Video AI Tái Hiện</div>
+              <div class="vplaybtn">▶</div>
+            </div>
+            <div class="vidbox-info">
+              <div class="vlbl">${_evVidUrl?'Xem Video Tái Hiện · Temporal Odyssey':'Xem Video Lịch Sử · AI Generated'}</div>
+              <div class="vsub">~2 phút · Miễn phí</div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="event-right">`;
 
   if(cat==='myth') html+=renderStoryMode(e);
   else if(cat==='battle') html+=renderBattleMode(e);
   else if(cat==='dynasty') html+=renderTimelineMode(e);
 
-  html+=`<div class="result-box" id="result-box">
+  html+=`<div class="result-box event-result-box" id="result-box">
     <div class="res-ttl" id="r-ttl"></div>
     <div class="res-exp" id="r-exp"></div>
     <div class="xp-chip" id="r-xp"></div>
     <br><button class="btn-quiz" onclick="openQuiz('${eid}')">📝 Kiểm Tra Kiến Thức</button>
     <button class="btn-main" style="font-size:11px;padding:11px 24px;margin-top:10px" onclick="nextEv()">Tiếp Theo →</button>
   </div>
+      </div>
+    </div>
   </div>`;
 
   const evBody=document.getElementById('evbody');
@@ -1031,7 +1141,20 @@ function openEv(eid, _opts){
   evBody.scrollTop=0;
   evEl.classList.add('active');
   go('event',cat,_opts);
-  requestAnimationFrame(()=>{ evBody.scrollTop=0; evEl.scrollTop=0; });
+  requestAnimationFrame(()=>{
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+    evBody.scrollTop=0;
+    evEl.scrollTop=0;
+  });
+  setTimeout(()=>{
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+    evBody.scrollTop=0;
+    evEl.scrollTop=0;
+  },40);
 
   if(cat==='battle') startTimer(e);
   if(cat==='dynasty') initDrag();
@@ -1042,14 +1165,34 @@ function openEv(eid, _opts){
 ──────────────────────────────── */
 function renderStoryMode(e){
   return `
-    <div class="sec-ttl">📿 Chọn Nhánh Câu Chuyện</div>
-    <div class="story-choice-wrap">
-      <div class="story-scene">${e.scene}</div>
-      <div class="choices">
-        ${e.choices.map((c,i)=>`<button class="choice-btn" onclick="pickChoice(${i})">${c.text}</button>`).join('')}
+    <section class="event-card event-card--choices">
+      <div class="sec-ttl">Chọn Nhánh Câu Chuyện</div>
+      <div class="story-choice-wrap">
+        <div class="story-scene">
+          <span class="story-scene-kicker">Câu hỏi mở đầu</span>
+          <div class="story-scene-text">${escapeHtml(e.scene)}</div>
+        </div>
+        <div class="choices">
+          ${e.choices.map((c,i)=>renderStoryChoiceButton(c.text,i)).join('')}
+        </div>
+        <div class="story-outcome" id="story-outcome"></div>
       </div>
-      <div class="story-outcome" id="story-outcome"></div>
-    </div>`;
+    </section>`;
+}
+
+function renderStoryChoiceButton(choiceText, idx){
+  const normalized=String(choiceText||'').trim();
+  const parts=normalized.split(/\s+/);
+  let icon='✦';
+  let body=normalized;
+  if(parts.length>1){
+    icon=parts.shift();
+    body=parts.join(' ');
+  }
+  return `<button class="choice-btn" onclick="pickChoice(${idx})" aria-label="${escapeHtml(normalized)}">
+    <span class="choice-btn__icon" aria-hidden="true">${escapeHtml(icon)}</span>
+    <span class="choice-btn__copy">${escapeHtml(body)}</span>
+  </button>`;
 }
 function pickChoice(idx){
   const e=EVS[curEv];
@@ -1213,14 +1356,16 @@ function _retryMythChoice(){
 let curQ=0, bScore=0, bTotal=0;
 function renderBattleMode(e){
   return `
-    <div class="sec-ttl">⏳ Quiz Tốc Độ</div>
-    <div class="battle-quiz">
+    <section class="event-card event-card--mode">
+      <div class="sec-ttl">Quiz Tốc Độ</div>
+      <div class="battle-quiz">
       <div class="score-multi" id="b-score">⚡ Điểm x1 · 0/${e.qs.length} câu</div>
       <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar" style="width:100%"></div></div>
       <div class="timer-label" id="timer-lbl">15s</div>
       <div class="bq-question" id="bq-q"></div>
       <div class="bq-opts" id="bq-opts"></div>
-    </div>`;
+      </div>
+    </section>`;
 }
 function startTimer(e){
   curQ=0; bScore=0; bTotal=e.qs.length;
@@ -1287,7 +1432,8 @@ function renderTimelineMode(e){
   const shuffled=[...e.tlItems].sort(()=>Math.random()-.5);
   tlOrder=shuffled.map(i=>i.id);
   return `
-    <div class="sec-ttl">🗒️ Sắp Xếp Timeline</div>
+    <section class="event-card event-card--mode">
+    <div class="sec-ttl">Sắp Xếp Timeline</div>
     <p class="timeline-intro">${e.tlTask}</p>
     <div class="tl-items" id="tl-items">
       ${shuffled.map((item,i)=>`
@@ -1298,7 +1444,8 @@ function renderTimelineMode(e){
           <span class="tl-yr">${item.yr} SCN</span>
         </div>`).join('')}
     </div>
-    <button class="tl-check-btn" onclick="checkTimeline()">✔ KIỂM TRA THỨ TỰ</button>`;
+    <button class="tl-check-btn" onclick="checkTimeline()">✔ KIỂM TRA THỨ TỰ</button>
+    </section>`;
 }
 function initDrag(){}
 function dragStart(e){ dragSrc=e.currentTarget; e.currentTarget.classList.add('dragging'); }
@@ -1341,7 +1488,7 @@ function checkTimeline(){
 ════════════════════════════════ */
 function showResult(win,ttl,exp,xpTxt){
   const box=document.getElementById('result-box');
-  box.className='result-box '+(win?'win':'lose');
+  box.className='result-box event-result-box '+(win?'win':'lose');
   box.style.display='block';
   document.getElementById('r-ttl').textContent=ttl;
   document.getElementById('r-exp').textContent=exp;
@@ -3302,40 +3449,35 @@ function isCatUnlocked(cat){
    CAT SELECT SCREEN
 ════════════════════════════════ */
 function renderCatSelect(){
-  ['myth','battle','dynasty'].forEach(cat=>{
+  const cardStates={
+    myth:{playable:true,label:'Vào hành trình'},
+    battle:{playable:false,label:'Đang phát triển'},
+    dynasty:{playable:false,label:'Đang phát triển'}
+  };
+
+  Object.entries(cardStates).forEach(([cat,state])=>{
     const el=document.getElementById('cs-'+cat);
     const statusEl=document.getElementById('cs-'+cat+'-status');
     if(!el||!statusEl) return;
-    // Remove old overlay
-    el.querySelector('.cat-locked-overlay')?.remove();
-    const unlocked=isCatUnlocked(cat);
-    if(unlocked){
-      el.classList.remove('locked-cat');
-      statusEl.textContent='✅ Mở khóa';
-      statusEl.style.background='rgba(100,200,80,.15)';
-      statusEl.style.borderColor='rgba(100,200,80,.3)';
-      statusEl.style.color='#7fdb5a';
-    } else {
-      el.classList.add('locked-cat');
-      const msgs={
-        battle:'🔒 Cần Huyền Thoại bàn 15 (hiện: '+getPlayedCount('myth')+')',
-        dynasty:'🔒 CT bàn 15 ('+getPlayedCount('battle')+') + HT bàn 30 ('+getPlayedCount('myth')+')'
-      };
-      statusEl.textContent=msgs[cat]||'🔒 Chưa mở khóa';
-      statusEl.style.background='rgba(0,0,0,.3)';
-      statusEl.style.borderColor='rgba(255,255,255,.1)';
-      statusEl.style.color='#888';
-      // Add lock overlay
-      const ov=document.createElement('div');
-      ov.className='cat-locked-overlay';
-      ov.innerHTML='<div class="lock-icon">🔒</div><div class="lock-msg">'+msgs[cat]+'</div>';
-      el.style.position='relative';
-      el.appendChild(ov);
-    }
+
+    el.querySelectorAll('.cat-locked-overlay, .primary-badge, .dev-badge').forEach(node=>node.remove());
+    el.classList.toggle('cat-primary', state.playable);
+    el.classList.toggle('cat-dev', !state.playable);
+    el.classList.toggle('locked-cat', !state.playable);
+
+    if('disabled' in statusEl) statusEl.disabled=!state.playable;
+    statusEl.textContent=state.label;
+    statusEl.setAttribute('aria-disabled', state.playable ? 'false' : 'true');
   });
+
+  if(typeof window.__catselectRefresh==='function') window.__catselectRefresh();
 }
 
 function selectCat(cat){
+  if(cat==='battle'||cat==='dynasty'){
+    toast('Hành trình này đang phát triển. Hiện chỉ mở Huyền Thoại.');
+    return;
+  }
   if(!isCatUnlocked(cat)){
     const msgs={
       battle:'🔒 Cần chơi Huyền Thoại đến bàn 15 để mở khóa Chiến Trận!',
@@ -3843,11 +3985,17 @@ setTimeout(function(){
 }, 150);
 setTimeout(function(){ _installRouteAuthHooks(); _runPendingRouteIfReady(); }, 450);
 setTimeout(function(){ _installRouteAuthHooks(); _runPendingRouteIfReady(); }, 900);
+setTimeout(_ensureRouteScreenVisible, 180);
+setTimeout(_ensureRouteScreenVisible, 650);
+setTimeout(_ensureRouteScreenVisible, 1200);
+window.addEventListener('pageshow', function(){ setTimeout(_ensureRouteScreenVisible, 0); });
 
 // ── Explicit window exports (ensure inline onclick handlers work) ──
 window.go = go;
 window._applyPathRoute = _applyPathRoute;
 window._pushRoute = _pushRoute;
+window._runPendingRouteIfReady = _runPendingRouteIfReady;
+window._ensureRouteScreenVisible = _ensureRouteScreenVisible;
 window.showIntro = typeof showIntro !== 'undefined' ? showIntro : window.showIntro;
 window.hideIntro = typeof hideIntro !== 'undefined' ? hideIntro : window.hideIntro;
 window.toggleSideMenu = toggleSideMenu;
