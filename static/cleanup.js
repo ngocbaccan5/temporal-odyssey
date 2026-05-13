@@ -201,7 +201,7 @@
     setText('#spanel-lang > div:first-child', 'Chọn ngôn ngữ hiển thị trong ứng dụng.');
     setText('#s-catselect .topnav > div:last-child', 'Chọn hành trình');
     setText('.catselect-title', 'Chọn Hành Trình');
-    setText('.catselect-sub', 'Bắc đây.');
+    setText('.catselect-sub', 'Bắt đầu hành trình lịch sử.');
     setText('#cs-myth .cat-name', 'Huyền Thoại');
     setText('#cs-battle .cat-name', 'Chiến Trận');
     setText('#cs-dynasty .cat-name', 'Triều Đại');
@@ -210,7 +210,7 @@
     setText('#cs-dynasty-status', 'Đang phát triển');
     document.querySelectorAll('.cat[data-cat="myth"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Dễ bắt đầu';
+      if (meta[0]) meta[0].textContent = 'Đang mở';
       if (meta[1]) meta[1].textContent = 'Kể chuyện tương tác';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Huyền Thoại';
@@ -219,7 +219,7 @@
     });
     document.querySelectorAll('.cat[data-cat="battle"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Sẽ mở sau';
+      if (meta[0]) meta[0].textContent = 'Đang phát triển';
       if (meta[1]) meta[1].textContent = 'Quiz tốc độ';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Chiến Trận';
@@ -228,7 +228,7 @@
     });
     document.querySelectorAll('.cat[data-cat="dynasty"]').forEach(function (cat) {
       var meta = cat.querySelectorAll('.cat-meta span');
-      if (meta[0]) meta[0].textContent = 'Sẽ mở sau';
+      if (meta[0]) meta[0].textContent = 'Đang phát triển';
       if (meta[1]) meta[1].textContent = 'Timeline lịch sử';
       var name = cat.querySelector('.cat-name');
       if (name) name.textContent = 'Triều Đại';

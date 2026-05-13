@@ -4,7 +4,7 @@
   var CARD_CONTENT = {
     myth: {
       title: 'Huyền Thoại',
-      meta: ['Dễ bắt đầu', 'Kể chuyện tương tác'],
+      meta: ['Đang mở', 'Kể chuyện tương tác'],
       description: 'Hành trình mở đầu với nhịp chơi rõ ràng, kể chuyện tương tác và từng chặng dẫn dắt nhẹ nhàng.',
       button: 'Vào hành trình',
       playable: true,
@@ -14,7 +14,7 @@
     },
     battle: {
       title: 'Chiến Trận',
-      meta: ['Sẽ mở sau', 'Quiz tốc độ'],
+      meta: ['Đang phát triển', 'Quiz tốc độ'],
       description: 'Nhịp độ nhanh, thiên về quyết định tức thời. Nội dung đang được cân bằng trước khi mở.',
       button: 'Đang phát triển',
       playable: false,
@@ -24,7 +24,7 @@
     },
     dynasty: {
       title: 'Triều Đại',
-      meta: ['Sẽ mở sau', 'Timeline lịch sử'],
+      meta: ['Đang phát triển', 'Timeline lịch sử'],
       description: 'Thiên về mốc thời gian, liên kết sự kiện và chiều sâu chiến lược. Hành trình đang hoàn thiện.',
       button: 'Đang phát triển',
       playable: false,
@@ -149,7 +149,7 @@
     if (!root) return;
 
     setText('.catselect-title', 'Chọn Hành Trình', root);
-    setText('.catselect-sub', 'Bắc đây.', root);
+    setText('.catselect-sub', 'Bắt đầu hành trình lịch sử.', root);
     setText('.topnav > div:last-child', 'Chọn hành trình', root);
 
     Object.keys(CARD_CONTENT).forEach(function (cat) {
