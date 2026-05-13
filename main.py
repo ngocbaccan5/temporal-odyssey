@@ -117,11 +117,39 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ── CORS / Trusted Hosts / Security Headers ──
-_ALLOWED_ORIGINS = os.getenv(
+def _csv_env(name: str, default: str = "") -> list[str]:
+    return [item.strip() for item in os.getenv(name, default).split(",") if item.strip()]
+
+
+def _unique(items: list[str]) -> list[str]:
+    seen = set()
+    result = []
+    for item in items:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
+
+
+_RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip()
+_ALLOWED_ORIGINS = _csv_env(
     "ALLOWED_ORIGINS",
-    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000"
-).split(",")
-_ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000",
+)
+if _RENDER_EXTERNAL_HOSTNAME:
+    _ALLOWED_ORIGINS.append(f"https://{_RENDER_EXTERNAL_HOSTNAME}")
+_ALLOWED_ORIGINS = _unique(_ALLOWED_ORIGINS)
+_ALLOWED_ORIGIN_REGEX = os.getenv(
+    "ALLOWED_ORIGIN_REGEX",
+    r"https://.*\.onrender\.com" if (_IS_PRODUCTION or _RENDER_EXTERNAL_HOSTNAME) else "",
+).strip() or None
+
+_ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1")
+if _RENDER_EXTERNAL_HOSTNAME:
+    _ALLOWED_HOSTS.append(_RENDER_EXTERNAL_HOSTNAME)
+if _IS_PRODUCTION or _RENDER_EXTERNAL_HOSTNAME:
+    _ALLOWED_HOSTS.append("*.onrender.com")
+_ALLOWED_HOSTS = _unique(_ALLOWED_HOSTS)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 if _ALLOWED_HOSTS:
@@ -129,6 +157,7 @@ if _ALLOWED_HOSTS:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
+    allow_origin_regex=_ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
