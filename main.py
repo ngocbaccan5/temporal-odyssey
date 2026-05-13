@@ -28,6 +28,7 @@ from schemas import (
 
 ADMIN_KEY = os.getenv("ADMIN_KEY", "temporal_admin_2026")
 _IS_PRODUCTION = os.getenv("ENV", "development").lower() == "production"
+_ENABLE_PUBLIC_DEMO_USER = os.getenv("ENABLE_PUBLIC_DEMO_USER", "true").lower() in ("1", "true", "yes")
 _SEED_DEMO_USERS = os.getenv("SEED_DEMO_USERS", "false").lower() in ("1", "true", "yes")
 _ENABLE_ADMIN_BOOTSTRAP = os.getenv("ENABLE_ADMIN_BOOTSTRAP", "false").lower() in ("1", "true", "yes")
 
@@ -41,14 +42,20 @@ async def lifespan(app: FastAPI):
     init_db()
     db = SessionLocal()
     try:
-        # Demo accounts — only when explicitly enabled (never in production)
-        if _SEED_DEMO_USERS:
-            if not db.query(User).filter(User.username == "datascience").first():
+        # Public demo login shown in the UI; test admin accounts remain opt-in.
+        if _ENABLE_PUBLIC_DEMO_USER:
+            demo_user = db.query(User).filter(User.username == "datascience").first()
+            if demo_user:
+                demo_user.hashed_password = hash_password("uneti")
+                demo_user.is_admin = False
+            else:
                 db.add(User(
                     username="datascience",
                     hashed_password=hash_password("uneti"),
-                    xp=120, free_left=5
+                    xp=120, free_left=5, is_admin=False
                 ))
+
+        if _SEED_DEMO_USERS:
             for tname, tpass in [("tester1","test2026"),("tester2","test2026"),("tester3","test2026")]:
                 if not db.query(User).filter(User.username == tname).first():
                     db.add(User(

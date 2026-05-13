@@ -71,7 +71,13 @@
     if (opts.headers) Object.assign(headers, opts.headers);
     opts.headers = headers;
     var res = await fetch(url, opts);
-    if (res.status === 401) {
+    var data = {};
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = {};
+    }
+    if (res.status === 401 && url !== '/api/login') {
       clearAuth();
       checkAuth();
       throw new Error('Phiên đăng nhập hết hạn');
@@ -79,8 +85,13 @@
     if (res.status === 429) {
       throw new Error('Quá nhiều yêu cầu, vui lòng thử lại sau 1 phút');
     }
-    var data = await res.json();
-    if (!res.ok) throw new Error(data.detail || data.error || 'Lỗi hệ thống');
+    if (!res.ok) {
+      var detail = data.detail || data.error;
+      if (Array.isArray(detail)) {
+        detail = detail.map(function (item) { return item.msg || item.message || String(item); }).join('; ');
+      }
+      throw new Error(detail || 'Lỗi hệ thống');
+    }
     return data;
   }
 
