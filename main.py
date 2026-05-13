@@ -151,10 +151,14 @@ _ALLOWED_ORIGIN_REGEX = os.getenv(
     r"https://.*\.onrender\.com" if (_IS_PRODUCTION or _RENDER_EXTERNAL_HOSTNAME) else "",
 ).strip() or None
 
-_ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1")
+_ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0")
 if _RENDER_EXTERNAL_HOSTNAME:
     _ALLOWED_HOSTS.append(_RENDER_EXTERNAL_HOSTNAME)
 _ALLOWED_HOSTS.append("*.onrender.com")
+_ALLOWED_HOSTS.extend([
+    "temporal-odyssey.com.vn",
+    "www.temporal-odyssey.com.vn",
+])
 _ALLOWED_HOSTS = _unique(_ALLOWED_HOSTS)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
