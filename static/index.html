@@ -27,6 +27,7 @@
   14. redesign.css        "Professional Redesign Override" (project-wide)
   15. catselect-bg.css    /catselect background + topnav tweak
   16. ui-fixes.css        FINAL override layer (lots of !important)
+  17. mobile.css          MOBILE-ONLY layer (all rules inside @media max-width:768px)
   Runtime: cleanup.js no longer injects CSS (since cleanup refactor).
 -->
 <link rel="stylesheet" href="/static/css/base.css">
@@ -44,7 +45,8 @@
 <link rel="stylesheet" href="/static/css/responsive.css?v=responsive1">
 <link rel="stylesheet" href="/static/redesign.css?v=responsive1">
 <link rel="stylesheet" href="/static/css/catselect-bg.css?v=catselect-v7">
-<link rel="stylesheet" href="/static/css/ui-fixes.css?v=7">
+<link rel="stylesheet" href="/static/css/ui-fixes.css?v=8">
+<link rel="stylesheet" href="/static/css/mobile.css?v=mobile-5">
 </head>
 <body>
 <div id="toast"></div>
@@ -1478,7 +1480,7 @@
   </div>
 </div>
 
-<script defer src="/static/js/app.js?v=routefix6"></script>
+<script defer src="/static/js/app.js?v=routefix7"></script>
 <script defer src="/static/api-layer.js?v=mythui6"></script>
 <script defer src="/static/cleanup.js?v=cattext-1"></script>
 <script defer src="/static/js/catselect-polish.js?v=cattext-1"></script>

@@ -1,0 +1,873 @@
+/* ═══════════════════════════════════════════════════════════
+   MOBILE.CSS — Dedicated mobile experience for Temporal Odyssey
+   ───────────────────────────────────────────────────────────
+   Scope:    ALL rules wrapped in @media (max-width: 768px).
+             Desktop (>768px) stays untouched.
+   Loaded:   LAST in index.html so cascade wins where needed.
+   Routes:   /, /catselect, /map/myth, /event/laclong, /journal, /pay
+   ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+
+  /* ───────────────────────────────────────────────
+     1. FOUNDATION TOKENS + GLOBAL SAFETY
+     ─────────────────────────────────────────────── */
+  :root {
+    --mobile-topbar-h: 56px;
+    --mobile-bottomnav-h: 72px;
+    --mobile-page-x: 16px;
+    --mobile-page-x-sm: 14px;
+    --mobile-card-radius: 16px;
+    --mobile-tap-min: 44px;
+    --mobile-safe-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--mobile-bottomnav-h) + 12px);
+  }
+
+  /* Prevent any horizontal overflow except where intentional (map viewport) */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  body {
+    /* Use 100dvh where available so URL bar doesn't push content off-screen */
+    min-height: 100dvh;
+  }
+
+  /* Every screen container respects bottom nav */
+  .screen {
+    box-sizing: border-box;
+  }
+
+  /* Bottom nav: keep crisp + safe for iOS */
+  .bnav {
+    height: auto !important;
+    padding-top: 6px !important;
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px) !important;
+  }
+  .bni { min-height: var(--mobile-tap-min) !important; }
+  .bni-lb { font-size: 10px !important; letter-spacing: .4px !important; }
+  .bni-ic { font-size: 20px !important; }
+
+  /* Floating chatbot icon — HIDDEN on mobile.
+     Reason: with a fixed bottom nav at left, the FAB collides with the leftmost
+     nav item ("Bản Đồ") and overlaps content while scrolling.
+     Note: cleanup.js sets `display:flex !important` inline, so we cannot
+     override display from CSS. We hide it visually with offscreen position +
+     zero size + no pointer events. Functionally still in the DOM. */
+  body #chatbot-btn,
+  #chatbot-btn {
+    position: fixed !important;
+    left: -9999px !important;
+    top: -9999px !important;
+    bottom: auto !important;
+    right: auto !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  /* If the modal is somehow opened, render it full-width safely */
+  .chatbot-modal {
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: calc(var(--mobile-bottomnav-h) + env(safe-area-inset-bottom, 0px) + 16px) !important;
+    max-height: 56vh !important;
+  }
+
+  /* Side menu shouldn't ever exceed viewport */
+  .side-menu { max-width: 88vw !important; }
+
+  /* ───────────────────────────────────────────────
+     2. TOP BAR (.topnav / .mapbar) — compact, no chen
+     ─────────────────────────────────────────────── */
+  .topnav {
+    height: var(--mobile-topbar-h) !important;
+    padding: 0 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+  .tnbrand {
+    font-size: 12px !important;
+    letter-spacing: 1.2px !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .tnlinks {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex: 0 0 auto !important;
+  }
+  /* Hide search + login + greeting text + logout link on mobile topbar */
+  .tnlinks > .tnlink[onclick*="showSearchModal"],
+  #nav-login-link,
+  .nav-hello,
+  .nav-logout {
+    display: none !important;
+  }
+  /* Keep language + hamburger only */
+  #lang-sel-wrap { font-size: 12px !important; }
+  .hamburger-btn {
+    font-size: 22px !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* mapbar (used by map/event/journal/pay) */
+  .mapbar {
+    min-height: var(--mobile-topbar-h) !important;
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+  .mapbar-title {
+    font-size: 14px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .3px !important;
+  }
+  .back-btn {
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 20px !important;
+  }
+  .stat-row { gap: 6px !important; }
+  .chip {
+    font-size: 12px !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+  }
+
+  /* ───────────────────────────────────────────────
+     3. LANDING /
+     ─────────────────────────────────────────────── */
+  #s-landing .orn-panel { display: none !important; }
+  #s-landing .hero {
+    padding: 14px var(--mobile-page-x) 24px !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  #s-landing .htitle {
+    font-size: clamp(28px, 8vw, 40px) !important;
+    line-height: 1.15 !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 8px !important;
+  }
+  #s-landing .hsub {
+    font-size: 12px !important;
+    letter-spacing: 2px !important;
+    margin-bottom: 8px !important;
+  }
+  #s-landing .hdesc {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    max-width: 480px !important;
+    margin: 0 auto 18px !important;
+  }
+  #s-landing .btn-main {
+    width: 100% !important;
+    max-width: 320px !important;
+    min-height: var(--mobile-tap-min) !important;
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    letter-spacing: 1px !important;
+  }
+  #s-landing .globe {
+    width: 90px !important;
+    height: 90px !important;
+    margin: 0 auto 12px !important;
+  }
+
+  /* ───────────────────────────────────────────────
+     4. CATSELECT /catselect — mobile-specific layout
+     ─────────────────────────────────────────────── */
+  #s-catselect .catselect-body {
+    padding: 16px var(--mobile-page-x) calc(env(safe-area-inset-bottom, 0px) + 24px) !important;
+    max-width: 100% !important;
+  }
+  #s-catselect .catselect-title {
+    font-size: clamp(28px, 7.5vw, 38px) !important;
+    line-height: 1.1 !important;
+    margin-bottom: 6px !important;
+    text-align: center !important;
+  }
+  #s-catselect .catselect-sub {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 18px !important;
+    text-align: center !important;
+    opacity: .72 !important;
+  }
+
+  /* Stack cards as a single column with controlled height. */
+  #s-catselect .cats-select {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Default mobile card: compact "row" style */
+  #s-catselect .cat-sel {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border-radius: var(--mobile-card-radius) !important;
+    overflow: hidden !important;
+    display: grid !important;
+    grid-template-columns: 120px 1fr !important;
+    grid-template-rows: auto auto !important;
+    grid-template-areas:
+      "img  meta"
+      "img  foot" !important;
+    column-gap: 12px !important;
+    align-items: stretch !important;
+  }
+  #s-catselect .cat-img {
+    grid-area: img !important;
+    height: 100% !important;
+    min-height: 110px !important;
+    width: 120px !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+  #s-catselect .cat-meta {
+    grid-area: meta !important;
+    padding: 10px 12px 0 0 !important;
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    font-size: 11px !important;
+    letter-spacing: .5px !important;
+  }
+  #s-catselect .cat-foot {
+    grid-area: foot !important;
+    padding: 4px 12px 12px 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  #s-catselect .cat-name {
+    font-size: 17px !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
+  }
+  #s-catselect .cat-desc {
+    font-size: 12px !important;
+    line-height: 1.45 !important;
+    margin: 0 !important;
+    opacity: .65 !important;
+  }
+  #s-catselect .cat-pill {
+    font-size: 11px !important;
+    padding: 4px 10px !important;
+    align-self: flex-start !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    line-height: 1.3 !important;
+  }
+  #s-catselect .cat-em {
+    font-size: 38px !important;
+  }
+
+  /* Featured / unlocked card (myth) — taller "hero" variant */
+  #s-catselect #cs-myth.cat-sel {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 200px auto auto !important;
+    grid-template-areas:
+      "img"
+      "meta"
+      "foot" !important;
+  }
+  #s-catselect #cs-myth .cat-img {
+    width: 100% !important;
+    height: 200px !important;
+    min-height: 200px !important;
+  }
+  #s-catselect #cs-myth .cat-em {
+    font-size: 56px !important;
+  }
+  #s-catselect #cs-myth .cat-meta {
+    padding: 12px 14px 0 !important;
+  }
+  #s-catselect #cs-myth .cat-foot {
+    padding: 0 14px 14px !important;
+    gap: 6px !important;
+  }
+  #s-catselect #cs-myth .cat-name {
+    font-size: 26px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Locked / coming-soon cards (battle/dynasty): compact poster cards */
+  #s-catselect #cs-battle.cat-sel,
+  #s-catselect #cs-dynasty.cat-sel {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    aspect-ratio: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    opacity: .9 !important;
+    overflow: hidden !important;
+  }
+  #s-catselect #cs-battle .cat-img,
+  #s-catselect #cs-dynasty .cat-img {
+    width: 100% !important;
+    height: 148px !important;
+    min-height: 148px !important;
+    flex: 0 0 148px !important;
+    border-radius: 0 !important;
+  }
+  #s-catselect #cs-battle .cat-meta,
+  #s-catselect #cs-dynasty .cat-meta {
+    width: 100% !important;
+    padding: 12px 16px 0 !important;
+    flex: 0 0 auto !important;
+  }
+  #s-catselect #cs-battle .cat-foot,
+  #s-catselect #cs-dynasty .cat-foot {
+    position: relative !important;
+    width: 100% !important;
+    padding: 8px 16px 16px !important;
+    gap: 6px !important;
+    flex: 0 0 auto !important;
+  }
+  #s-catselect #cs-battle .cat-name,
+  #s-catselect #cs-dynasty .cat-name {
+    font-size: 21px !important;
+  }
+  #s-catselect #cs-battle .cat-desc,
+  #s-catselect #cs-dynasty .cat-desc {
+    opacity: .78 !important;
+  }
+  #s-catselect #cs-battle .cat-pill,
+  #s-catselect #cs-dynasty .cat-pill {
+    width: 100% !important;
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+    align-self: stretch !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* ───────────────────────────────────────────────
+     5. MAP /map/myth — horizontal scroll viewport
+     ─────────────────────────────────────────────── */
+  /* Make screen fill viewport + allow vertical scrolling of the page body */
+  #s-map {
+    overflow-y: auto !important;
+    padding-bottom: var(--mobile-safe-bottom) !important;
+  }
+
+  /* Reward strip: compact */
+  #s-map .reward-section {
+    margin: 8px 12px 6px !important;
+    padding: 8px 10px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  #s-map .reward-ttl {
+    font-size: 11px !important;
+    letter-spacing: 1px !important;
+    margin-bottom: 6px !important;
+  }
+  #s-map .badges-row {
+    gap: 6px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px !important;
+  }
+  #s-map .badge-item {
+    flex-shrink: 0 !important;
+    min-width: 56px !important;
+    padding: 8px 8px !important;
+    font-size: 16px !important;
+  }
+
+  /* THE KEY FIX: enable horizontal scroll for path-map */
+  #s-map .path-map-wrap {
+    flex: 1 1 auto !important;
+    min-height: 320px !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  #s-map .path-map-viewport {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-height: 320px !important;
+    height: auto !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x proximity;
+    /* visible scrollbar for tactile feedback */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(244,208,111,.35) transparent;
+    /* fade-in hint at right edge so user knows it scrolls */
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+  }
+  #s-map .path-map-viewport::-webkit-scrollbar { height: 4px; }
+  #s-map .path-map-viewport::-webkit-scrollbar-thumb {
+    background: rgba(244,208,111,.35);
+    border-radius: 4px;
+  }
+
+  /* Canvas: fixed wide so nodes spread naturally, then user swipes */
+  #s-map .path-map-canvas {
+    position: relative !important;
+    width: 1120px !important;
+    min-width: 1120px !important;
+    height: 320px !important;
+    min-height: 320px !important;
+    margin: 0 !important;
+    display: block !important;
+    transform: none !important;
+  }
+
+  /* Disable the desktop side arrows on mobile — touch swipe is enough */
+  #s-map .path-arrow,
+  #s-map .path-arrow-l,
+  #s-map .path-arrow-r {
+    display: none !important;
+  }
+
+  /* Nodes scaled for mobile */
+  #s-map .path-node-circle {
+    width: 54px !important;
+    height: 54px !important;
+    font-size: 22px !important;
+    border-width: 2px !important;
+  }
+  #s-map .path-node-num {
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 10px !important;
+    top: -4px !important;
+    left: -4px !important;
+  }
+  #s-map .path-node-label {
+    font-size: 10px !important;
+    max-width: 84px !important;
+    margin-top: 4px !important;
+    line-height: 1.2 !important;
+  }
+  #s-map .path-node-yr {
+    font-size: 9px !important;
+    margin-top: 1px !important;
+  }
+  #s-map .path-era-banner {
+    font-size: 10px !important;
+    letter-spacing: 1px !important;
+    padding: 3px 12px !important;
+  }
+
+  /* Optional swipe hint chip */
+  #s-map .path-map-wrap::after {
+    content: "← Vuốt để xem hành trình →";
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: rgba(232,222,200,.45);
+    letter-spacing: .4px;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 5;
+  }
+
+  /* Bottom path-nav arrows kept but smaller */
+  #s-map .path-nav {
+    padding: 6px 12px !important;
+    gap: 10px !important;
+  }
+  #s-map .path-nav-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 16px !important;
+  }
+  #s-map .path-nav-counter {
+    font-size: 11px !important;
+    letter-spacing: .3px !important;
+  }
+
+  /* Difficulty banner: compact */
+  #s-map .diff-banner {
+    padding: 8px 12px !important;
+    margin: 8px 12px !important;
+    gap: 10px !important;
+  }
+  #s-map .diff-icon { font-size: 22px !important; }
+  #s-map .diff-info strong { font-size: 13px !important; }
+  #s-map .diff-info span { font-size: 12px !important; }
+
+  /* ───────────────────────────────────────────────
+     6. EVENT /event/laclong — single column
+     ─────────────────────────────────────────────── */
+  #s-event {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Hero compact */
+  #s-event .evhero {
+    height: 130px !important;
+    min-height: 130px !important;
+  }
+  #s-event .evhem { font-size: 38px !important; }
+  #s-event .evhtitle {
+    font-size: clamp(15px, 4.4vw, 19px) !important;
+    line-height: 1.2 !important;
+    letter-spacing: .3px !important;
+  }
+  #s-event .evhyr {
+    font-size: 11px !important;
+    letter-spacing: 1px !important;
+  }
+
+  /* Force single column, kill desktop sticky right column */
+  #s-event .evbody,
+  #s-event.evbody {
+    flex: 0 0 auto !important;
+    height: auto !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    padding: 14px var(--mobile-page-x) var(--mobile-safe-bottom) !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+  #s-event .mapbar,
+  #s-event .evhero {
+    flex: 0 0 auto !important;
+  }
+  #s-event .event-left,
+  #s-event .event-right {
+    width: 100% !important;
+    min-width: 0 !important;
+    position: static !important;
+    top: auto !important;
+  }
+  #s-event .event-right { margin-top: 0 !important; }
+
+  /* Polished event-shell variant used on /event/laclong */
+  #s-event .event-shell,
+  #s-event .event-panel-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-radius: var(--mobile-card-radius) !important;
+    margin: 0 0 16px !important;
+  }
+  #s-event .event-shell__header {
+    padding: 14px 14px 12px !important;
+    gap: 12px !important;
+  }
+  #s-event .event-shell__badge {
+    width: 52px !important;
+    height: 52px !important;
+  }
+  #s-event .event-shell__glyph { font-size: 24px !important; }
+  #s-event .event-shell__eyebrow { font-size: 10px !important; letter-spacing: 1.6px !important; }
+  #s-event .event-shell__title { font-size: 20px !important; line-height: 1.2 !important; }
+  #s-event .event-shell__subtitle { font-size: 12px !important; }
+  #s-event .event-panel-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 14px !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  #s-event .event-left,
+  #s-event .event-right,
+  #s-event .event-card,
+  #s-event .story-choice-wrap,
+  #s-event .choices {
+    height: auto !important;
+    max-height: none !important;
+  }
+  #s-event .event-card {
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  /* Story card */
+  #s-event .story,
+  #s-event .event-story-copy {
+    font-size: 14px !important;
+    line-height: 1.7 !important;
+    padding: 12px 14px !important;
+  }
+
+  /* Video card */
+  #s-event .vidbox {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #s-event .vidbox-media {
+    min-height: 130px !important;
+  }
+  #s-event .vplaybtn {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  /* Choices */
+  #s-event .story-choice-wrap,
+  #s-event .battle-quiz {
+    width: 100% !important;
+    padding-bottom: 16px !important;
+  }
+  #s-event .choices,
+  #s-event .story-scene {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  #s-event .choice-btn,
+  #s-event .bq-opt {
+    width: 100% !important;
+    text-align: left !important;
+    padding: 12px 14px !important;
+    font-size: 14px !important;
+    min-height: var(--mobile-tap-min) !important;
+    line-height: 1.4 !important;
+  }
+  #s-event .bq-question { font-size: 15px !important; line-height: 1.5 !important; }
+
+  /* Result */
+  #s-event .result-box,
+  #s-event .event-result-box {
+    width: 100% !important;
+    padding: 14px !important;
+    border-radius: 14px !important;
+    margin-top: 12px !important;
+  }
+
+  /* ───────────────────────────────────────────────
+     7. JOURNAL /journal — refine on top of journal.css
+     ─────────────────────────────────────────────── */
+  #s-journal .journal-wrap {
+    padding: 14px var(--mobile-page-x) var(--mobile-safe-bottom) !important;
+  }
+  #s-journal .journal-hero {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+  #s-journal .journal-card {
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+  #s-journal .journal-big {
+    font-size: 24px !important;
+  }
+  #s-journal .journal-kicker {
+    font-size: 10px !important;
+    letter-spacing: .16em !important;
+  }
+  #s-journal .journal-sub {
+    font-size: 12.5px !important;
+    line-height: 1.55 !important;
+  }
+  #s-journal .journal-tabs {
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  #s-journal .journal-tab {
+    flex: 1 1 auto !important;
+    text-align: center !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    min-height: var(--mobile-tap-min) !important;
+  }
+  #s-journal .journal-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  #s-journal .journal-item {
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+  }
+  #s-journal .journal-item-title { font-size: 14px !important; }
+  #s-journal .journal-item-meta { font-size: 11.5px !important; }
+
+  /* ───────────────────────────────────────────────
+     8. PAY /pay — refine on top of payment.css
+     ─────────────────────────────────────────────── */
+  #s-pay .pay-scroll-body {
+    padding: 18px var(--mobile-page-x) var(--mobile-safe-bottom) !important;
+    max-width: 100% !important;
+  }
+  #s-pay .pw-icon { font-size: 38px !important; margin-bottom: 6px !important; }
+  #s-pay .pw-title {
+    font-size: clamp(20px, 6vw, 26px) !important;
+    margin-bottom: 4px !important;
+  }
+  #s-pay .pw-desc {
+    font-size: 13px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 16px !important;
+  }
+
+  /* XP redeem — single column on mobile */
+  #s-pay .xp-redeem-box {
+    padding: 16px 14px 12px !important;
+    margin-bottom: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #s-pay .xp-redeem-title {
+    font-size: 14px !important;
+    margin-bottom: 10px !important;
+  }
+  #s-pay .xp-redeem-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  #s-pay .xp-redeem-opt {
+    padding: 12px 14px !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-height: var(--mobile-tap-min) !important;
+  }
+  #s-pay .xp-cost { font-size: 16px !important; }
+  #s-pay .xp-reward {
+    font-size: 12px !important;
+    margin-top: 0 !important;
+    text-align: right !important;
+  }
+  #s-pay .xp-badge {
+    position: static !important;
+    border-radius: 999px !important;
+    padding: 2px 8px !important;
+    font-size: 9px !important;
+  }
+  #s-pay .xp-current { font-size: 12px !important; text-align: center !important; }
+
+  /* Plan cards single column */
+  #s-pay .plans {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    gap: 12px !important;
+  }
+  #s-pay .plan {
+    width: 100% !important;
+    padding: 18px 16px 14px !important;
+    border-radius: var(--mobile-card-radius) !important;
+  }
+  #s-pay .plan-ribbon { font-size: 9px !important; padding: 3px 8px !important; }
+  #s-pay .plan-name { font-size: 16px !important; }
+  #s-pay .plan-price { font-size: 20px !important; }
+  #s-pay .plan-price em { font-size: 12px !important; }
+  #s-pay .plan-feats { font-size: 12.5px !important; line-height: 1.75 !important; }
+  #s-pay .pw-divider {
+    font-size: 12px !important;
+    margin: 4px 0 14px !important;
+  }
+
+  /* Payment form (s-payment) — same safe padding */
+  #s-payment .payment-body {
+    padding: 16px var(--mobile-page-x) var(--mobile-safe-bottom) !important;
+    max-width: 100% !important;
+  }
+  #s-payment .pay-hero-icon { font-size: 36px !important; }
+  #s-payment .pay-hero-name { font-size: 16px !important; }
+  #s-payment .pay-hero-price { font-size: 20px !important; }
+  #s-payment .pay-form-card {
+    padding: 16px !important;
+    border-radius: var(--mobile-card-radius) !important;
+  }
+  #s-payment .pay-confirm-btn {
+    min-height: var(--mobile-tap-min) !important;
+    font-size: 14px !important;
+  }
+
+  /* ───────────────────────────────────────────────
+     9. EXTRA SMALL (≤480px) — phone narrow tweaks
+     ─────────────────────────────────────────────── */
+  @media (max-width: 480px) {
+    :root {
+      --mobile-page-x: var(--mobile-page-x-sm);
+    }
+
+    /* Topbar even tighter */
+    .tnbrand { font-size: 11px !important; letter-spacing: 1px !important; }
+
+    /* Catselect: feature card image a bit shorter */
+    #s-catselect #cs-myth.cat-sel {
+      grid-template-rows: 180px auto auto !important;
+    }
+    #s-catselect #cs-myth .cat-img {
+      height: 180px !important;
+      min-height: 180px !important;
+    }
+    #s-catselect #cs-myth .cat-name { font-size: 22px !important; }
+
+    /* Disabled cards stay poster-style on narrow phones */
+    #s-catselect #cs-battle.cat-sel,
+    #s-catselect #cs-dynasty.cat-sel {
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    #s-catselect #cs-battle .cat-img,
+    #s-catselect #cs-dynasty .cat-img {
+      width: 100% !important;
+      height: 138px !important;
+      min-height: 138px !important;
+      flex-basis: 138px !important;
+    }
+
+    /* Map: narrower canvas still wider than viewport */
+    #s-map .path-map-canvas {
+      width: 980px !important;
+      min-width: 980px !important;
+      height: 300px !important;
+      min-height: 300px !important;
+    }
+    #s-map .path-map-viewport { min-height: 300px !important; }
+    #s-map .path-node-circle { width: 48px !important; height: 48px !important; font-size: 20px !important; }
+
+    /* Event hero shorter */
+    #s-event .evhero { height: 116px !important; min-height: 116px !important; }
+    #s-event .evhem { font-size: 32px !important; }
+
+    /* Tabs slightly tighter */
+    #s-journal .journal-tab { font-size: 12.5px !important; padding: 9px 10px !important; }
+  }
+}
