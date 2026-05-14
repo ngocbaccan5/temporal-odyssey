@@ -26,9 +26,14 @@ from schemas import (
     QuizRequest, QuizAnswer
 )
 
-ADMIN_KEY = os.getenv("ADMIN_KEY", "temporal_admin_2026")
 _IS_PRODUCTION = os.getenv("ENV", "development").lower() == "production"
-_ENABLE_PUBLIC_DEMO_USER = os.getenv("ENABLE_PUBLIC_DEMO_USER", "true").lower() in ("1", "true", "yes")
+
+_DEFAULT_ADMIN_KEY = "temporal_admin_2026"
+ADMIN_KEY = os.getenv("ADMIN_KEY", _DEFAULT_ADMIN_KEY)
+if _IS_PRODUCTION and ADMIN_KEY == _DEFAULT_ADMIN_KEY:
+    raise RuntimeError("ADMIN_KEY must be changed from the default value in production.")
+
+_ENABLE_PUBLIC_DEMO_USER = os.getenv("ENABLE_PUBLIC_DEMO_USER", "false").lower() in ("1", "true", "yes")
 _SEED_DEMO_USERS = os.getenv("SEED_DEMO_USERS", "false").lower() in ("1", "true", "yes")
 _ENABLE_ADMIN_BOOTSTRAP = os.getenv("ENABLE_ADMIN_BOOTSTRAP", "false").lower() in ("1", "true", "yes")
 
@@ -86,37 +91,30 @@ async def lifespan(app: FastAPI):
 
 _docs_url = None if _IS_PRODUCTION else "/docs"
 _redoc_url = None if _IS_PRODUCTION else "/redoc"
+_openapi_url = None if _IS_PRODUCTION else "/openapi.json"
 
 app = FastAPI(
     title="Temporal Odyssey API",
     description="""
-## 🏛️ Temporal Odyssey — Vietnamese History Learning Game API
+## Temporal Odyssey — Vietnamese History Learning Game API
 
-### Xác thực (Authentication)
-- Đăng ký/Đăng nhập để nhận **JWT Bearer Token**
-- Gửi header: `Authorization: Bearer <token>`
+### Authentication
+- Register / Login to receive a **JWT Bearer Token**
+- Header: `Authorization: Bearer <token>`
 
-### Tài khoản test
-| Username | Password | XP | Free Plays | Admin |
-|---|---|---|---|---|
-| `admin` | `admin2026` | 9999 | 99 (∞) | ✅ |
-| `tester1` | `test2026` | 9999 | 99 (∞) | ✅ |
-| `tester2` | `test2026` | 9999 | 99 (∞) | ✅ |
-| `tester3` | `test2026` | 9999 | 99 (∞) | ✅ |
-| `datascience` | `uneti` | 120 | 5 | ❌ |
+### Game Flow
+1. **POST /api/login** → Get token
+2. **GET /api/quiz/{event_id}** → Get 3 random questions
+3. **POST /api/quiz/check** → Submit answers (need ≥ 2/3 correct)
+4. **POST /api/award-xp** → Award XP on completion
 
-### Luồng chơi game
-1. **POST /api/login** → Nhận token
-2. **GET /api/quiz/{event_id}** → Lấy 3 câu hỏi ngẫu nhiên
-3. **POST /api/quiz/check** → Nộp bài, cần ≥ 2/3 đúng để qua màn
-4. **POST /api/award-xp** → Cộng XP khi hoàn thành
-
-### Đổi XP lấy lượt chơi
-- 50 XP → 3 lượt | 100 XP → 8 lượt | 200 XP → 99 lượt (∞)
+### XP Redemption
+- 50 XP → 3 plays | 100 XP → 8 plays | 200 XP → 99 plays (∞)
 """,
     version="2.0.0",
     docs_url=_docs_url,
     redoc_url=_redoc_url,
+    openapi_url=_openapi_url,
     lifespan=lifespan
 )
 
@@ -146,9 +144,14 @@ _ALLOWED_ORIGINS = _csv_env(
 if _RENDER_EXTERNAL_HOSTNAME:
     _ALLOWED_ORIGINS.append(f"https://{_RENDER_EXTERNAL_HOSTNAME}")
 _ALLOWED_ORIGINS = _unique(_ALLOWED_ORIGINS)
+_has_custom_domain = any(
+    h for h in _csv_env("ALLOWED_HOSTS", "")
+    if h not in ("localhost", "127.0.0.1", "0.0.0.0") and "onrender.com" not in h
+)
 _ALLOWED_ORIGIN_REGEX = os.getenv(
     "ALLOWED_ORIGIN_REGEX",
-    r"https://.*\.onrender\.com" if (_IS_PRODUCTION or _RENDER_EXTERNAL_HOSTNAME) else "",
+    "" if (_IS_PRODUCTION and _has_custom_domain)
+    else (r"https://.*\.onrender\.com" if _RENDER_EXTERNAL_HOSTNAME else ""),
 ).strip() or None
 
 _ALLOWED_HOSTS = _csv_env("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0")
@@ -181,6 +184,18 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     return response
+
+
+# ══════════════════════════════════════
+#  PUBLIC CONFIG (frontend feature flags)
+# ══════════════════════════════════════
+
+@app.get("/api/config", tags=["Config"], summary="Public feature flags")
+async def public_config(request: Request):
+    return {
+        "demo_mode": _ENABLE_PUBLIC_DEMO_USER,
+        "payment_live": False,
+    }
 
 
 # ══════════════════════════════════════
@@ -221,7 +236,7 @@ async def register(request: Request, data: UserRegister, db: Session = Depends(g
 
 
 @app.post("/api/login", response_model=TokenResponse, tags=["Auth"], summary="Đăng nhập")
-@limiter.limit("60/minute")
+@limiter.limit("10/minute")
 async def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     """
     Đăng nhập và nhận JWT Bearer token.
@@ -323,7 +338,9 @@ async def award_xp(
 
 
 @app.post("/api/redeem-xp", tags=["XP & Lượt chơi"], summary="Đổi XP lấy lượt chơi")
+@limiter.limit("10/minute")
 async def redeem_xp(
+    request: Request,
     data: XPRedeem,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -579,7 +596,7 @@ import json, random
 
 # Load quiz bank on startup
 QUIZ_BANK = {}
-_quiz_path = os.path.join(os.path.dirname(__file__), "static", "quiz_bank.json")
+_quiz_path = os.path.join(os.path.dirname(__file__), "data", "quiz_bank.json")
 if os.path.isfile(_quiz_path):
     with open(_quiz_path, "r", encoding="utf-8") as _f:
         QUIZ_BANK = json.load(_f)
@@ -707,6 +724,15 @@ async def check_quiz(
 # ══════════════════════════════════════
 
 static_dir = os.path.join(os.path.dirname(__file__), "static")
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    from fastapi.responses import PlainTextResponse
+    return PlainTextResponse(
+        "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /static/js/\n"
+        "Sitemap: https://www.temporal-odyssey.com.vn/sitemap.xml\n"
+    )
 
 
 @app.get("/")

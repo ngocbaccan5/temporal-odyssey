@@ -3,7 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Temporal Odyssey</title>
+<title>Temporal Odyssey — Hành Trình Xuyên Lịch Sử Việt Nam</title>
+<meta name="description" content="Temporal Odyssey — Game học lịch sử Việt Nam qua trải nghiệm tương tác. Khám phá truyền thuyết, chiến trận và triều đại qua quiz, sự kiện và AI chatbot.">
+<link rel="canonical" href="https://www.temporal-odyssey.com.vn/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Temporal Odyssey — Hành Trình Xuyên Lịch Sử Việt Nam">
+<meta property="og:description" content="Game học lịch sử Việt Nam qua trải nghiệm tương tác. Khám phá truyền thuyết, chiến trận và triều đại.">
+<meta property="og:url" content="https://www.temporal-odyssey.com.vn/">
+<meta property="og:image" content="https://www.temporal-odyssey.com.vn/static/assets/images/icons/icon-2.jpg">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:site_name" content="Temporal Odyssey">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Temporal Odyssey — Hành Trình Xuyên Lịch Sử Việt Nam">
+<meta name="twitter:description" content="Game học lịch sử Việt Nam qua trải nghiệm tương tác.">
+<meta name="twitter:image" content="https://www.temporal-odyssey.com.vn/static/assets/images/icons/icon-2.jpg">
 <link rel="icon" href="/static/assets/images/icons/icon-2.jpg?v=icon2-1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,16 +83,16 @@
 <div id="side-menu-overlay" class="side-overlay" onclick="closeSideMenu()"></div>
 <div id="side-menu" class="side-menu">
   <div class="side-menu-top">
-    <div class="side-menu-brand">?? Temporal Odyssey</div>
-    <div class="side-menu-close" onclick="closeSideMenu()">?</div>
+    <div class="side-menu-brand">&#9733; Temporal Odyssey</div>
+    <div class="side-menu-close" onclick="closeSideMenu()">&times;</div>
   </div>
 
   <!-- TAB BAR -->
   <div class="side-tabs">
-    <div class="side-tab active" onclick="switchSideTab('info')">?? Th?ng tin</div>
-    <div class="side-tab" onclick="switchSideTab('lang')">?? Ng?n ng?</div>
+    <div class="side-tab active" onclick="switchSideTab('info')">&#9432; Th&#244;ng tin</div>
+    <div class="side-tab" onclick="switchSideTab('lang')">&#127760; Ng&#244;n ng&#7919;</div>
   </div>
-  <!-- TH?NG TIN -->
+  <!-- TH&#212;NG TIN -->
   <div class="side-panel active" id="spanel-info">
     <!-- User info only -->
     <div class="side-menu-user">
@@ -91,111 +104,111 @@
         </svg>
       </div>
       <div class="side-user-details">
-        <div class="side-menu-username" id="side-username">Kh?ch</div>
+        <div class="side-menu-username" id="side-username">Kh&#225;ch</div>
         <div class="side-user-stats">
-          <span class="side-stat">? <span id="side-xp">120</span> XP</span>
-          <span class="side-stat">?? <span id="side-plays">0</span> b?n d? choi</span>
+          <span class="side-stat">&#9733; <span id="side-xp">120</span> XP</span>
+          <span class="side-stat">&#127918; <span id="side-plays">0</span> b&#7843;n &#273;&#7891; ch&#417;i</span>
         </div>
-        <div class="side-user-free">C?n <span id="side-free">5</span> lu?t mi?n ph?</div>
+        <div class="side-user-free">C&#242;n <span id="side-free">5</span> l&#432;&#7907;t mi&#7877;n ph&#237;</div>
       </div>
     </div>
     <div class="side-menu-divider"></div>
 
-    <!-- ?i?u hu?ng -->
-    <div class="side-menu-item" onclick="closeSideMenu();go('journal',curCat)">?? Nh?t K? & X?p H?ng</div>
-    <div class="side-menu-item" onclick="closeSideMenu();go('pay','')">?? N?ng C?p</div>
+    <!-- &#272;i&#7873;u h&#432;&#7899;ng -->
+    <div class="side-menu-item" onclick="closeSideMenu();go('journal',curCat)">&#128214; Nh&#7853;t K&#253; &amp; X&#7871;p H&#7841;ng</div>
+    <div class="side-menu-item" onclick="closeSideMenu();go('pay','')">&#11088; N&#226;ng C&#7845;p</div>
     <div class="side-menu-divider"></div>
 
-    <!-- Accordion: Ti?n d? m? kh?a + danh s?ch b?n choi -->
-    <div class="side-menu-section">Ti?n d? m? kh?a</div>
+    <!-- Accordion: Ti&#7871;n &#273;&#7897; m&#7903; kh&#243;a + danh s&#225;ch b&#7843;n ch&#417;i -->
+    <div class="side-menu-section">Ti&#7871;n &#273;&#7897; m&#7903; kh&#243;a</div>
 
-    <!-- HUY?N THO?I accordion -->
+    <!-- HUY&#7872;N THO&#7840;I accordion -->
     <div class="side-accordion" id="acc-myth">
       <div class="side-acc-header" onclick="toggleAccordion('myth')">
-        <span>?? Huy?n Tho?i</span>
+        <span>&#128218; Huy&#7873;n Tho&#7841;i</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="side-unlock-badge unlocked">?? m?</span>
-          <span class="side-acc-arrow" id="arr-myth">?</span>
+          <span class="side-unlock-badge unlocked">&#272;&#227; m&#7903;</span>
+          <span class="side-acc-arrow" id="arr-myth">&#9660;</span>
         </div>
       </div>
       <div class="side-acc-body" id="acc-body-myth">
-        <div class="side-acc-desc">? D? ? K? chuy?n ch?n nh?nh</div>
+        <div class="side-acc-desc">&#9733; D&#7877; &#8211; K&#7875; chuy&#7879;n ch&#7885;n nh&#225;nh</div>
         <div class="side-acc-progress">
           <div class="side-acc-bar"><div class="side-acc-fill myth-fill" id="myth-fill"></div></div>
-          <span class="side-acc-count" id="myth-count">0 / 15 b?n</span>
+          <span class="side-acc-count" id="myth-count">0 / 15 b&#7843;n</span>
         </div>
-        <div class="side-acc-btn" onclick="closeSideMenu();selectCat('myth')">? Choi ngay</div>
+        <div class="side-acc-btn" onclick="closeSideMenu();selectCat('myth')">&#9654; Ch&#417;i ngay</div>
       </div>
     </div>
 
-    <!-- CHI?N TR?N accordion -->
+    <!-- CHI&#7870;N TR&#7852;N accordion -->
     <div class="side-accordion" id="acc-battle">
       <div class="side-acc-header" onclick="toggleAccordion('battle')">
-        <span>?? Chi?n Tr?n</span>
+        <span>&#9876; Chi&#7871;n Tr&#7853;n</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <span class="side-unlock-badge" id="side-badge-battle">HT b?n 0/15</span>
-          <span class="side-acc-arrow" id="arr-battle">?</span>
+          <span class="side-unlock-badge" id="side-badge-battle">HT b&#7843;n 0/15</span>
+          <span class="side-acc-arrow" id="arr-battle">&#9660;</span>
         </div>
       </div>
       <div class="side-acc-body" id="acc-body-battle">
-        <div class="side-acc-desc">?? V?a ? Quiz t?c d? c? d?m gi?</div>
-        <div class="side-acc-unlock-req" id="battle-req">?? C?n choi Huy?n Tho?i d?n b?n 15</div>
+        <div class="side-acc-desc">&#9876; V&#7915;a &#8211; Quiz t&#7889;c &#273;&#7897; c&#243; &#273;&#7871;m gi&#7901;</div>
+        <div class="side-acc-unlock-req" id="battle-req">&#128274; C&#7847;n ch&#417;i Huy&#7873;n Tho&#7841;i &#273;&#7871;n b&#7843;n 15</div>
         <div class="side-acc-progress">
           <div class="side-acc-bar"><div class="side-acc-fill battle-fill" id="battle-fill"></div></div>
-          <span class="side-acc-count" id="battle-count">0 / 15 b?n</span>
+          <span class="side-acc-count" id="battle-count">0 / 15 b&#7843;n</span>
         </div>
-        <div class="side-acc-btn" id="battle-play-btn" onclick="closeSideMenu();selectCat('battle')">? Choi ngay</div>
+        <div class="side-acc-btn" id="battle-play-btn" onclick="closeSideMenu();selectCat('battle')">&#9654; Ch&#417;i ngay</div>
       </div>
     </div>
 
-    <!-- TRI?U ??I accordion -->
+    <!-- TRI&#7872;U &#272;&#7840;I accordion -->
     <div class="side-accordion" id="acc-dynasty">
       <div class="side-acc-header" onclick="toggleAccordion('dynasty')">
-        <span>?? Tri?u ??i</span>
+        <span>&#127983; Tri&#7873;u &#272;&#7841;i</span>
         <div style="display:flex;align-items:center;gap:8px">
           <span class="side-unlock-badge" id="side-badge-dynasty">CT 0/15+HT 0/30</span>
-          <span class="side-acc-arrow" id="arr-dynasty">?</span>
+          <span class="side-acc-arrow" id="arr-dynasty">&#9660;</span>
         </div>
       </div>
       <div class="side-acc-body" id="acc-body-dynasty">
-        <div class="side-acc-desc">??? Kh? ? S?p x?p timeline l?ch s?</div>
-        <div class="side-acc-unlock-req" id="dynasty-req">?? C?n CT b?n 15 + HT b?n 30</div>
+        <div class="side-acc-desc">&#128293; Kh&#243; &#8211; S&#7855;p x&#7871;p timeline l&#7883;ch s&#7917;</div>
+        <div class="side-acc-unlock-req" id="dynasty-req">&#128274; C&#7847;n CT b&#7843;n 15 + HT b&#7843;n 30</div>
         <div class="side-acc-progress">
           <div class="side-acc-bar"><div class="side-acc-fill dynasty-fill" id="dynasty-fill"></div></div>
-          <span class="side-acc-count" id="dynasty-count">CT 0/15 ? HT 0/30</span>
+          <span class="side-acc-count" id="dynasty-count">CT 0/15 &#8211; HT 0/30</span>
         </div>
-        <div class="side-acc-btn" id="dynasty-play-btn" onclick="closeSideMenu();selectCat('dynasty')">? Choi ngay</div>
+        <div class="side-acc-btn" id="dynasty-play-btn" onclick="closeSideMenu();selectCat('dynasty')">&#9654; Ch&#417;i ngay</div>
       </div>
     </div>
 
     <div class="side-menu-divider"></div>
-    <div class="side-menu-item" onclick="closeSideMenu();showSearchModal()">?? T?m ki?m l?ch s?</div>
-    <div class="side-menu-item danger" onclick="closeSideMenu();handleLogout()">?? ?ang xu?t</div>
+    <div class="side-menu-item" onclick="closeSideMenu();showSearchModal()">&#128269; T&#236;m ki&#7871;m l&#7883;ch s&#7917;</div>
+    <div class="side-menu-item danger" onclick="closeSideMenu();handleLogout()">&#128682; &#272;&#259;ng xu&#7845;t</div>
   </div>
 
-  <!-- TAB: NG?N NG? -->
+  <!-- TAB: NG&#212;N NG&#7918; -->
   <div class="side-panel" id="spanel-lang">
     <div style="padding:18px 18px 10px;font-size:13px;color:var(--warm);line-height:1.8">
-      Ch?n ng?n ng? hi?n th? trong ?ng d?ng.
+      Ch&#7885;n ng&#244;n ng&#7919; hi&#7875;n th&#7883; trong &#7913;ng d&#7909;ng.
     </div>
     <div class="side-lang-opt active" id="slang-vi" onclick="setLang('vi')">
-      <span class="slang-flag">????</span>
-      <div><div class="slang-name">Ti?ng Vi?t</div><div class="slang-sub">Vi?t Nam</div></div>
-      <span class="slang-check" id="slang-check-vi">?</span>
+      <span class="slang-flag">&#127483;&#127475;</span>
+      <div><div class="slang-name">Ti&#7871;ng Vi&#7879;t</div><div class="slang-sub">Vi&#7879;t Nam</div></div>
+      <span class="slang-check" id="slang-check-vi">&#10003;</span>
     </div>
     <div class="side-lang-opt" id="slang-en" onclick="setLang('en')">
-      <span class="slang-flag">????</span>
+      <span class="slang-flag">&#127482;&#127480;</span>
       <div><div class="slang-name">English</div><div class="slang-sub">United States</div></div>
       <span class="slang-check" id="slang-check-en"></span>
     </div>
     <div class="side-lang-opt" id="slang-zh" onclick="setLang('zh')">
-      <span class="slang-flag">????</span>
-      <div><div class="slang-name">??</div><div class="slang-sub">????</div></div>
+      <span class="slang-flag">&#127464;&#127475;</span>
+      <div><div class="slang-name">&#20013;&#25991;</div><div class="slang-sub">&#20013;&#22269;&#22823;&#38470;</div></div>
       <span class="slang-check" id="slang-check-zh"></span>
     </div>
     <div class="side-lang-opt" id="slang-fr" onclick="setLang('fr')">
-      <span class="slang-flag">????</span>
-      <div><div class="slang-name">Fran?ais</div><div class="slang-sub">France</div></div>
+      <span class="slang-flag">&#127467;&#127479;</span>
+      <div><div class="slang-name">Fran&#231;ais</div><div class="slang-sub">France</div></div>
       <span class="slang-check" id="slang-check-fr"></span>
     </div>
   </div>
@@ -204,26 +217,26 @@
 <!-- --- CAT SELECT SCREEN --- -->
 <div id="s-catselect" class="screen">
   <div class="topnav">
-    <div class="tnbrand" onclick="go('landing','')" style="cursor:pointer">? TEMPORAL ODYSSEY</div>
-    <div style="font-size:13px;color:var(--warm);letter-spacing:1px">Ch?n h?nh tr?nh</div>
+    <div class="tnbrand" onclick="go('landing','')" style="cursor:pointer">&#9733; TEMPORAL ODYSSEY</div>
+    <div style="font-size:13px;color:var(--warm);letter-spacing:1px">Ch&#7885;n h&#224;nh tr&#236;nh</div>
   </div>
   <div class="catselect-body">
-    <div class="catselect-title">Ch?n H?nh Tr?nh C?a B?n</div>
-    <div class="catselect-sub">M?i con du?ng c? c?ch choi, d? kh? v? ph?n thu?ng ri?ng</div>
+    <div class="catselect-title">Ch&#7885;n H&#224;nh Tr&#236;nh C&#7911;a B&#7841;n</div>
+    <div class="catselect-sub">M&#7895;i con &#273;&#432;&#7901;ng c&#243; c&#225;ch ch&#417;i, &#273;&#7897; kh&#243; v&#224; ph&#7847;n th&#432;&#7903;ng ri&#234;ng</div>
     <div class="cats-select">
       <div class="cat cat-sel" data-cat="myth" id="cs-myth" onclick="selectCat('myth')">
         <div class="cat-img">
           <div class="cat-img-bg"></div>
           <div class="cat-img-ov"></div>
-          <div class="cat-em">??</div>
+          <div class="cat-em">&#128218;</div>
         </div>
         <div class="cat-meta">
-          <span>? D?</span><span>?? K? Chuy?n</span>
+          <span>&#9733; D&#7877;</span><span>&#128214; K&#7875; Chuy&#7879;n</span>
         </div>
         <div class="cat-foot">
-          <div class="cat-name">Huy?n Tho?i</div>
+          <div class="cat-name">Huy&#7873;n Tho&#7841;i</div>
           <div class="cat-desc"></div>
-          <div class="cat-pill cat-status" id="cs-myth-status">? M? kh?a</div>
+          <div class="cat-pill cat-status" id="cs-myth-status">&#9989; M&#7903; kh&#243;a</div>
         </div>
       </div>
 
@@ -231,15 +244,15 @@
         <div class="cat-img">
           <div class="cat-img-bg"></div>
           <div class="cat-img-ov"></div>
-          <div class="cat-em">??</div>
+          <div class="cat-em">&#9876;</div>
         </div>
         <div class="cat-meta">
-          <span>?? V?a</span><span>? T?c ??</span>
+          <span>&#9876; V&#7915;a</span><span>&#9200; T&#7889;c &#272;&#7897;</span>
         </div>
         <div class="cat-foot">
-          <div class="cat-name">Chi?n Tr?n</div>
+          <div class="cat-name">Chi&#7871;n Tr&#7853;n</div>
           <div class="cat-desc"></div>
-          <div class="cat-pill cat-status" id="cs-battle-status">?? C?n Huy?n Tho?i b?n 15</div>
+          <div class="cat-pill cat-status" id="cs-battle-status">&#128274; C&#7847;n Huy&#7873;n Tho&#7841;i b&#7843;n 15</div>
         </div>
       </div>
 
@@ -247,15 +260,15 @@
         <div class="cat-img">
           <div class="cat-img-bg"></div>
           <div class="cat-img-ov"></div>
-          <div class="cat-em">??</div>
+          <div class="cat-em">&#127983;</div>
         </div>
         <div class="cat-meta">
-          <span>??? Kh?</span><span>??? Timeline</span>
+          <span>&#128293; Kh&#243;</span><span>&#128197; Timeline</span>
         </div>
         <div class="cat-foot">
-          <div class="cat-name">Tri?u ??i</div>
+          <div class="cat-name">Tri&#7873;u &#272;&#7841;i</div>
           <div class="cat-desc"></div>
-          <div class="cat-pill cat-status" id="cs-dynasty-status">?? C?n Chi?n Tr?n b?n 15 + Huy?n Tho?i b?n 30</div>
+          <div class="cat-pill cat-status" id="cs-dynasty-status">&#128274; C&#7847;n Chi&#7871;n Tr&#7853;n b&#7843;n 15 + Huy&#7873;n Tho&#7841;i b&#7843;n 30</div>
         </div>
       </div>
     </div>
@@ -370,15 +383,15 @@
 --------------------------------------- -->
 <div id="s-landing" class="screen active">
   <nav class="topnav">
-    <div class="tnbrand">?? TEMPORAL ODYSSEY</div>
+    <div class="tnbrand">&#9733; TEMPORAL ODYSSEY</div>
     <div class="tnlinks">
-      <div class="tnlink" onclick="showSearchModal()">T?m Ki?m</div>
+      <div class="tnlink" onclick="showSearchModal()">T&#236;m Ki&#7871;m</div>
       <div class="tnlink lang-sel-wrap" id="lang-sel-wrap">
-        <span onclick="toggleLangMenu()" style="cursor:pointer">?? <span id="lang-label">VI</span> ?</span>
+        <span onclick="toggleLangMenu()" style="cursor:pointer">&#127760; <span id="lang-label">VI</span> &#9660;</span>
         <div class="lang-menu" id="lang-menu">
-          <div class="lang-opt active" onclick="setLang('vi')">???? Ti?ng Vi?t</div>
-          <div class="lang-opt" onclick="setLang('en')">???? English</div>
-          <div class="lang-opt" onclick="setLang('zh')">???? ??</div>
+          <div class="lang-opt active" onclick="setLang('vi')">&#127483;&#127475; Ti&#7871;ng Vi&#7879;t</div>
+          <div class="lang-opt" onclick="setLang('en')">&#127482;&#127480; English</div>
+          <div class="lang-opt" onclick="setLang('zh')">&#127464;&#127475; &#20013;&#25991;</div>
         </div>
       </div>
       <div class="tnlink" id="nav-login-link" onclick="showAuthScreen()">&#272;&#259;ng nh&#7853;p</div>
@@ -1145,24 +1158,24 @@
       </svg>
     </div>
     <h1 class="htitle fu1">TEMPORAL<br>ODYSSEY</h1>
-    <div class="hsub fu1">Cu?c H?nh Tr?nh Xuy?n Th?i Gian</div>
+    <div class="hsub fu1">Cu&#7897;c H&#224;nh Tr&#236;nh Xuy&#234;n Th&#7901;i Gian</div>
     <div class="hdiv fu2"></div>
-    <p class="hdesc fu2">M?i con du?ng c? <em>c?ch choi, d? kh? v? ph?n thu?ng ri?ng.</em></p>
+    <p class="hdesc fu2">M&#7895;i con &#273;&#432;&#7901;ng c&#243; <em>c&#225;ch ch&#417;i, &#273;&#7897; kh&#243; v&#224; ph&#7847;n th&#432;&#7903;ng ri&#234;ng.</em></p>
     <div class="hbtns fu3">
       <div class="intro-btn-wrap" id="intro-btn-wrap">
-        <button class="btn-ghost intro-trigger" onmouseenter="showIntro()" onmouseleave="hideIntro()" ontouchstart="toggleIntro()" type="button">?? Gi?i thi?u tr? choi</button>
+        <button class="btn-ghost intro-trigger" onmouseenter="showIntro()" onmouseleave="hideIntro()" ontouchstart="toggleIntro()" type="button">&#128218; Gi&#7899;i thi&#7879;u tr&#242; ch&#417;i</button>
         <div class="intro-popup" id="intro-popup">
-          <div class="intro-popup-title">?? Temporal Odyssey l? g??</div>
-          <p>?ng d?ng h?c l?ch s? Vi?t Nam qua <strong>tr? choi tuong t?c</strong>. Ch?n m?t trong ba h?nh tr?nh:</p>
+          <div class="intro-popup-title">&#128218; Temporal Odyssey l&#224; g&#236;?</div>
+          <p>&#7912;ng d&#7909;ng h&#7885;c l&#7883;ch s&#7917; Vi&#7879;t Nam qua <strong>tr&#242; ch&#417;i t&#432;&#417;ng t&#225;c</strong>. Ch&#7885;n m&#7897;t trong ba h&#224;nh tr&#236;nh:</p>
           <ul>
-            <li>?? <strong>Huy?n Tho?i</strong> ? k? chuy?n ch?n nh?nh, ph? h?p ngu?i m?i</li>
-            <li>?? <strong>Chi?n Tr?n</strong> ? quiz t?c d? c? d?m gi?</li>
-            <li>?? <strong>Tri?u ??i</strong> ? s?p x?p timeline l?ch s?</li>
+            <li>&#128218; <strong>Huy&#7873;n Tho&#7841;i</strong> &#8211; k&#7875; chuy&#7879;n ch&#7885;n nh&#225;nh, ph&#249; h&#7907;p ng&#432;&#7901;i m&#7899;i</li>
+            <li>&#9876; <strong>Chi&#7871;n Tr&#7853;n</strong> &#8211; quiz t&#7889;c &#273;&#7897; c&#243; &#273;&#7871;m gi&#7901;</li>
+            <li>&#127983; <strong>Tri&#7873;u &#272;&#7841;i</strong> &#8211; s&#7855;p x&#7871;p timeline l&#7883;ch s&#7917;</li>
           </ul>
-          <p>M?i s? ki?n c? <em>video minh h?a, c?u h?i v? ph?n thu?ng huy hi?u</em> ri?ng. Ho?n th?nh d? b?n d? m? kh?a ch? d? m?i!</p>
+          <p>M&#7895;i s&#7921; ki&#7879;n c&#243; <em>video minh h&#7885;a, c&#226;u h&#7887;i v&#224; ph&#7847;n th&#432;&#7903;ng huy hi&#7879;u</em> ri&#234;ng. Ho&#224;n th&#224;nh &#273;&#7911; b&#7843;n &#273;&#7891; m&#7903; kh&#243;a ch&#7911; &#273;&#7873; m&#7899;i!</p>
         </div>
       </div>
-      <button class="btn-main" onclick="go('catselect','')">?? &nbsp;B?T ??U H?NH TR?NH</button>
+      <button class="btn-main" onclick="go('catselect','')">&#128640; &nbsp;B&#7854;T &#272;&#7846;U H&#192;NH TR&#204;NH</button>
     </div>
   </div>
 
@@ -1171,40 +1184,40 @@
     <div class="cat" data-cat="myth" onclick="go('map','myth')">
       <div class="cat-img">
         <div class="cat-img-ov"></div>
-        <div class="cat-em">??</div>
+        <div class="cat-em">&#128218;</div>
       </div>
       <div class="cat-meta">
-        <span>? D?</span><span>?? K? Chuy?n</span>
+        <span>&#9733; D&#7877;</span><span>&#128214; K&#7875; Chuy&#7879;n</span>
       </div>
       <div class="cat-foot">
-        <div class="cat-name">Huy?n Tho?i</div>
-        <div class="cat-pill">Kh?m Ph?</div>
+        <div class="cat-name">Huy&#7873;n Tho&#7841;i</div>
+        <div class="cat-pill">Kh&#225;m Ph&#225;</div>
       </div>
     </div>
     <div class="cat" data-cat="battle" onclick="go('map','battle')">
       <div class="cat-img">
         <div class="cat-img-ov"></div>
-        <div class="cat-em">??</div>
+        <div class="cat-em">&#9876;</div>
       </div>
       <div class="cat-meta">
-        <span>?? V?a</span><span>? T?c ??</span>
+        <span>&#9876; V&#7915;a</span><span>&#9200; T&#7889;c &#272;&#7897;</span>
       </div>
       <div class="cat-foot">
-        <div class="cat-name">Chi?n Tr?n</div>
-        <div class="cat-pill">Chi?n Tr?n</div>
+        <div class="cat-name">Chi&#7871;n Tr&#7853;n</div>
+        <div class="cat-pill">Chi&#7871;n Tr&#7853;n</div>
       </div>
     </div>
     <div class="cat" data-cat="dynasty" onclick="go('map','dynasty')">
       <div class="cat-img">
         <div class="cat-img-ov"></div>
-        <div class="cat-em">??</div>
+        <div class="cat-em">&#127983;</div>
       </div>
       <div class="cat-meta">
-        <span>??? Kh?</span><span>??? Timeline</span>
+        <span>&#128293; Kh&#243;</span><span>&#128197; Timeline</span>
       </div>
       <div class="cat-foot">
-        <div class="cat-name">Tri?u ??i</div>
-        <div class="cat-pill">Kh?m Ph?</div>
+        <div class="cat-name">Tri&#7873;u &#272;&#7841;i</div>
+        <div class="cat-pill">Kh&#225;m Ph&#225;</div>
       </div>
     </div>
   </div>
@@ -1216,48 +1229,48 @@
 <div id="s-map" class="screen">
   <div class="mapbar">
     <div class="mapbar-left">
-      <div class="back-btn" onclick="go('landing','')">?</div>
-      <div class="mapbar-title" id="map-title">?? Chi?n Tr?n</div>
+      <div class="back-btn" onclick="go('landing','')">&#9664;</div>
+      <div class="mapbar-title" id="map-title">&#9876; Chi&#7871;n Tr&#7853;n</div>
     </div>
     <div class="stat-row">
-      <div class="chip">?? <span id="xp-disp">120</span> XP</div>
-      <div class="chip">??? <span id="free-disp">3</span></div>
+      <div class="chip">&#9733; <span id="xp-disp">120</span> XP</div>
+      <div class="chip">&#127918; <span id="free-disp">3</span></div>
     </div>
   </div>
 
   <!-- DIFFICULTY BANNER (hidden) -->
   <div class="diff-banner" id="diff-banner" style="display:none">
-    <div class="diff-icon" id="diff-icon">??</div>
+    <div class="diff-icon" id="diff-icon">&#9876;</div>
     <div class="diff-info">
-      <strong id="diff-name">CHI?N TR?N ? ?? KH?: TRUNG B?NH</strong>
-      <span id="diff-desc">Quiz t?c d? c? d?m gi? ? tr? l?i nhanh d? nh?n di?m x2!</span>
+      <strong id="diff-name">CHI&#7870;N TR&#7852;N &#8211; &#272;&#7896; KH&#211;: TRUNG B&#204;NH</strong>
+      <span id="diff-desc">Quiz t&#7889;c &#273;&#7897; c&#243; &#273;&#7871;m gi&#7901; &#8211; tr&#7843; l&#7901;i nhanh &#273;&#7875; nh&#7853;n &#273;i&#7875;m x2!</span>
     </div>
   </div>
 
   <!-- REWARD BADGES -->
   <div class="reward-section" id="reward-section">
-    <div class="reward-ttl" id="reward-ttl">??? HUY HI?U CHI?N TR?N</div>
+    <div class="reward-ttl" id="reward-ttl">&#127942; HUY HI&#7878;U CHI&#7870;N TR&#7852;N</div>
     <div class="badges-row" id="badges-row"><!-- filled by JS --></div>
   </div>
 
   <div class="path-map-wrap" id="path-map-wrap">
     <div class="path-map-viewport" id="path-viewport">
       <div class="path-map-canvas" id="path-canvas"><!-- filled by JS --></div>
-      <button class="path-arrow path-arrow-l" id="parr-l" onclick="scrollPath(-1)" disabled>?</button>
-      <button class="path-arrow path-arrow-r" id="parr-r" onclick="scrollPath(1)">?</button>
+      <button class="path-arrow path-arrow-l" id="parr-l" onclick="scrollPath(-1)" disabled>&#9664;</button>
+      <button class="path-arrow path-arrow-r" id="parr-r" onclick="scrollPath(1)">&#9654;</button>
     </div>
   </div>
   <!-- Arrow navigation -->
   <div class="path-nav" id="path-nav">
-    <button class="path-nav-btn" id="path-prev" onclick="pathPage(-1)" disabled>?</button>
+    <button class="path-nav-btn" id="path-prev" onclick="pathPage(-1)" disabled>&#9664;</button>
     <div class="path-nav-counter" id="path-counter">1 / 1</div>
-    <button class="path-nav-btn" id="path-next" onclick="pathPage(1)">?</button>
+    <button class="path-nav-btn" id="path-next" onclick="pathPage(1)">&#9654;</button>
   </div>
 
   <div class="bnav">
-    <div class="bni on"><div class="bni-ic">??</div><div class="bni-lb">B?n ??</div></div>
-    <div class="bni" onclick="go('journal',curCat)"><div class="bni-ic">??</div><div class="bni-lb">Nh?t K?</div></div>
-    <div class="bni" onclick="go('pay','')"><div class="bni-ic">??</div><div class="bni-lb">N?ng C?p</div></div>
+    <div class="bni on"><div class="bni-ic">&#128506;</div><div class="bni-lb">B&#7843;n &#272;&#7891;</div></div>
+    <div class="bni" onclick="go('journal',curCat)"><div class="bni-ic">&#128214;</div><div class="bni-lb">Nh&#7853;t K&#253;</div></div>
+    <div class="bni" onclick="go('pay','')"><div class="bni-ic">&#11088;</div><div class="bni-lb">N&#226;ng C&#7845;p</div></div>
   </div>
 </div>
 
@@ -1267,8 +1280,8 @@
 <div id="s-event" class="screen">
   <div class="mapbar">
     <div class="mapbar-left">
-      <div class="back-btn" id="ev-back" onclick="">?</div>
-      <div class="mapbar-title" id="ev-bar-title">S? Ki?n</div>
+      <div class="back-btn" id="ev-back" onclick="">&#9664;</div>
+      <div class="mapbar-title" id="ev-bar-title">S&#7921; Ki&#7879;n</div>
     </div>
     <div style="font-size:10px;letter-spacing:1px;opacity:.6" id="ev-bar-mode"></div>
   </div>
@@ -1277,8 +1290,8 @@
     <div class="evhbg" id="evhbg"></div>
     <div class="evhov"></div>
     <div class="evhin">
-      <div class="evhem" id="evhem">??</div>
-      <div class="evhtitle" id="evhtitle">Tr?n B?ch ??ng</div>
+      <div class="evhem" id="evhem">&#9876;</div>
+      <div class="evhtitle" id="evhtitle">Tr&#7853;n B&#7841;ch &#272;&#7857;ng</div>
       <div class="evhyr" id="evhyr">938 SCN</div>
     </div>
   </div>
@@ -1286,9 +1299,9 @@
   <div class="evbody" id="evbody"><!-- filled by JS --></div>
 
   <div class="bnav">
-    <div class="bni" id="ev-nav-back" onclick="go('map',curCat)"><div class="bni-ic">??</div><div class="bni-lb">B?n ??</div></div>
-    <div class="bni" onclick="go('journal',curCat)"><div class="bni-ic">??</div><div class="bni-lb">Nh?t K?</div></div>
-    <div class="bni" onclick="go('pay','')"><div class="bni-ic">??</div><div class="bni-lb">N?ng C?p</div></div>
+    <div class="bni" id="ev-nav-back" onclick="go('map',curCat)"><div class="bni-ic">&#128506;</div><div class="bni-lb">B&#7843;n &#272;&#7891;</div></div>
+    <div class="bni" onclick="go('journal',curCat)"><div class="bni-ic">&#128214;</div><div class="bni-lb">Nh&#7853;t K&#253;</div></div>
+    <div class="bni" onclick="go('pay','')"><div class="bni-ic">&#11088;</div><div class="bni-lb">N&#226;ng C&#7845;p</div></div>
   </div>
 </div>
 

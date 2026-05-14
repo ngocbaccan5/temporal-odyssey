@@ -78,22 +78,8 @@ def get_current_user(
 def get_optional_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
-):
-    """Returns User if valid token exists, None otherwise. Never raises 401."""
-    if not credentials:
-        return None
-    try:
-        payload = decode_token(credentials.credentials)
-        user_id = int(payload.get("sub"))
-        return db.query(User).filter(User.id == user_id).first()
-    except Exception:
-        return None
-
-
-def get_optional_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
 ) -> User | None:
+    """Returns User if valid token exists, None otherwise. Never raises 401."""
     if not credentials:
         return None
     try:

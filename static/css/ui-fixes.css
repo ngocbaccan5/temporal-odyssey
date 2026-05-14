@@ -1270,6 +1270,8 @@ body:has(#s-event.active) #chatbot-btn {
 #s-map .path-map-canvas {
   position: relative !important;
   z-index: 2 !important;
+  flex: 0 0 auto !important;
+  max-width: none !important;
 }
 
 .theme-myth #s-map .path-map-viewport::before,

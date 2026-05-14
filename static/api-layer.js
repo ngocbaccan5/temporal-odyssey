@@ -21,6 +21,18 @@
 (function () {
   'use strict';
 
+  // ── Feature flags (fetched from /api/config) ──
+  var _cfg = { demo_mode: false, payment_live: false };
+  (function loadConfig() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', '/api/config', false);
+      xhr.send();
+      if (xhr.status === 200) _cfg = JSON.parse(xhr.responseText);
+    } catch (e) { /* offline/error: keep safe defaults */ }
+  })();
+  window.__appConfig = _cfg;
+
   // ── One-time migration: drop legacy access_token zombie key ──
   (function migrateLegacyAuth() {
     try {
@@ -552,12 +564,69 @@
   // ══════════════════════════════════════
 
   window.activatePlan = async function () {
+    if (!_cfg.payment_live && !_cfg.demo_mode) {
+      if (typeof toast === 'function') toast('⚠️ Thanh toán chưa sẵn sàng. Vui lòng quay lại sau.');
+      return;
+    }
     window.freeLeft = 99;
     if (typeof syncHud === 'function') syncHud();
     await persistCurrentProfile();
     if (typeof toast === 'function') toast('🎉 Đã mở khóa toàn bộ hành trình!');
     if (typeof go === 'function') go('map', window.curCat);
   };
+
+  window.confirmPayment = function () {
+    if (!_cfg.payment_live && !_cfg.demo_mode) {
+      if (typeof toast === 'function') toast('⚠️ Thanh toán chưa sẵn sàng. Vui lòng quay lại sau.');
+      return;
+    }
+    var card = document.getElementById('pay-card');
+    var exp = document.getElementById('pay-exp');
+    var cvv = document.getElementById('pay-cvv');
+    var name = document.getElementById('pay-name-input');
+    if (!card || !exp || !cvv || !name) return;
+    if (card.value.replace(/\s/g, '').length < 12 || exp.value.length < 4 || cvv.value.length < 3 || !name.value.trim()) {
+      if (typeof toast === 'function') toast('⚠️ Vui lòng điền đủ thông tin');
+      return;
+    }
+    var btn = document.getElementById('pay-confirm-btn');
+    if (btn) { btn.textContent = '⏳ Đang xử lý...'; btn.disabled = true; }
+    setTimeout(function () {
+      if (btn) btn.style.display = 'none';
+      var success = document.getElementById('pay-success');
+      if (success) success.style.display = 'flex';
+    }, 1800);
+  };
+
+  // ══════════════════════════════════════
+  //  PRODUCTION UI GATING
+  // ══════════════════════════════════════
+
+  (function applyProductionGating() {
+    if (_cfg.demo_mode) return;
+
+    // Hide demo credentials from auth screen
+    var demoBox = document.querySelector('.auth-demo');
+    if (demoBox) demoBox.style.display = 'none';
+
+    var demoNote = document.querySelector('.auth-note');
+    if (demoNote) demoNote.style.display = 'none';
+
+    var loginUser = document.getElementById('login-user');
+    if (loginUser && loginUser.placeholder === 'datascience') loginUser.placeholder = 'Tên đăng nhập';
+
+    var loginPass = document.getElementById('login-pass');
+    if (loginPass && loginPass.placeholder === 'uneti') loginPass.placeholder = 'Mật khẩu';
+
+    // Mark payment as not live
+    if (!_cfg.payment_live) {
+      var demoNote2 = document.querySelector('.pay-demo-note');
+      if (demoNote2) demoNote2.textContent = '🚧 Tính năng thanh toán đang được phát triển';
+
+      var payBtn = document.getElementById('pay-confirm-btn');
+      if (payBtn) { payBtn.disabled = true; payBtn.textContent = '🚧 Chưa sẵn sàng'; }
+    }
+  })();
 
   // ══════════════════════════════════════
   //  INIT — chạy checkAuth sau khi override

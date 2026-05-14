@@ -1658,26 +1658,7 @@ function activatePlan(){
 }
 
 function secretAdminLogin() {
-  // Mở hộp thoại yêu cầu nhập mật khẩu
-  const pass = prompt("Nhập mã truy cập Quản trị viên hệ thống Temporal Odyssey:");
-  
-  // Kiểm tra mật khẩu (bạn có thể đổi 'admin123' thành mật khẩu khác)
-  if (pass === "admin123") {
-    // 1. Tắt tất cả các màn hình hiện tại đang bật
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    
-    // 2. Ẩn thanh thông tin người chơi (nếu đang hiển thị)
-    const navInfo = document.getElementById('user-info-nav');
-    if(navInfo) navInfo.style.display = 'none';
-    
-    // 3. Bật màn hình admin và tải dữ liệu
-    document.getElementById('s-admin').classList.add('active');
-    renderAdminPanel(); // Hàm này đã có ở Bước 2
-    
-    alert("Xác thực thành công. Chào mừng Quản trị viên!");
-  } else if (pass !== null) {
-    alert("Sai mã truy cập!");
-  }
+  // Overridden by api-layer.js to use backend verification
 }
 
 function persistCurrentProfile() {
@@ -1906,8 +1887,8 @@ function switchAuth(mode) {
 
 // [REMOVED] duplicate checkAuth #1
 
-const DEMO_USER = 'datascience';
-const DEMO_PASS = 'uneti';
+const DEMO_USER = '';
+const DEMO_PASS = '';
 const USERS_STORAGE_KEY = 'temporal_users';
 const CURRENT_USER_STORAGE_KEY = 'temporal_currentUser';
 
@@ -3171,17 +3152,10 @@ function adminClearAllData() {
 }
 
 function secretAdminLogin() {
-  const pass = prompt('Nh\u1eadp m\u00e3 truy c\u1eadp Qu\u1ea3n tr\u1ecb vi\u00ean h\u1ec7 th\u1ed1ng Temporal Odyssey:');
-  if (pass === null) {
-    return;
-  }
-
-  if (pass !== 'admin123') {
-    alert('Sai m\u00e3 truy c\u1eadp!');
-    return;
-  }
-
-  document.querySelectorAll('.screen').forEach((screen) => screen.classList.remove('active'));
+  // Overridden by api-layer.js — this stub only runs if api-layer fails to load
+  alert('Admin login requires api-layer.js');
+}
+function _secretAdminLogin_stub() {
   const navInfo = document.getElementById('user-info-nav');
   if (navInfo) {
     navInfo.style.display = 'none';
@@ -3947,12 +3921,21 @@ let _pathOffset=0;
 let _pathMaxOffset=0;
 const PATH_SCROLL_STEP=3; // nodes per click
 
+function _getPathScrollableWidth(canvas){
+  if(!canvas) return 0;
+  return Math.max(
+    canvas.scrollWidth || 0,
+    canvas.offsetWidth || 0,
+    Math.ceil(canvas.getBoundingClientRect().width || 0)
+  );
+}
+
 function scrollPath(dir){
   const canvas=document.getElementById('path-canvas');
   const vp=document.getElementById('path-viewport');
   if(!canvas||!vp) return;
-  const vpW=vp.offsetWidth;
-  const cvW=canvas.offsetWidth;
+  const vpW=vp.clientWidth||vp.offsetWidth;
+  const cvW=_getPathScrollableWidth(canvas);
   _pathMaxOffset=Math.max(0,cvW-vpW);
   const step=vpW*0.7;
   _pathOffset=Math.max(0,Math.min(_pathMaxOffset,_pathOffset+dir*step));
@@ -3965,7 +3948,7 @@ function _updatePathArrows(){
   const canvas=document.getElementById('path-canvas');
   const vp=document.getElementById('path-viewport');
   if(!l||!r||!canvas||!vp) return;
-  _pathMaxOffset=Math.max(0,canvas.offsetWidth-vp.offsetWidth);
+  _pathMaxOffset=Math.max(0,_getPathScrollableWidth(canvas)-(vp.clientWidth||vp.offsetWidth));
   l.disabled=(_pathOffset<=0);
   r.disabled=(_pathOffset>=_pathMaxOffset-2);
 }
