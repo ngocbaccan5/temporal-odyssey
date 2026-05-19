@@ -1472,30 +1472,25 @@
 </div>
 
 <!-- --- CHATBOT --- -->
-<div id="chatbot-btn" onclick="toggleChatbot()" title="Hỏi đáp lịch sử AI">
+<div id="chatbot-btn" title="Hỏi đáp lịch sử AI" role="button" tabindex="0">
   <span style="font-size:16px;font-weight:700;color:var(--gold)">AI</span>
 </div>
-<div id="chatbot-modal" class="chatbot-modal">
+<div id="chatbot-modal" class="chatbot-modal" aria-hidden="true">
   <div class="chatbot-header">
     <div class="chatbot-title">Trợ Lý Lịch Sử AI</div>
-    <button class="chatbot-close" onclick="toggleChatbot()">×</button>
+    <button type="button" class="chatbot-close">×</button>
   </div>
-  <div class="chatbot-messages" id="chatbot-msgs">
-    <div class="chat-msg bot">
-      <div class="chat-bubble">Xin chào! Tôi là trợ lý AI chuyên về lịch sử Việt Nam. Bạn muốn hỏi gì?</div>
-    </div>
-  </div>
+  <div class="chatbot-messages" id="chatbot-msgs"></div>
   <div class="chatbot-input-row">
     <input type="text" id="chatbot-input" class="chatbot-input"
-      placeholder="Hỏi về lịch sử Việt Nam..." maxlength="500"
-      onkeydown="if(event.key==='Enter') sendChat()">
-    <button class="chatbot-send" onclick="sendChat()">&#10148;</button>
+      placeholder="Hỏi về lịch sử Việt Nam..." maxlength="500">
+    <button type="button" class="chatbot-send">&#10148;</button>
   </div>
 </div>
 
-<script defer src="/static/js/app.js?v=chatbot-fallback1"></script>
+<script defer src="/static/js/app.js?v=chatbot-stable1"></script>
 <script defer src="/static/api-layer.js?v=mythui6"></script>
-<script defer src="/static/cleanup.js?v=chatbot-fallback1"></script>
+<script defer src="/static/cleanup.js?v=chatbot-stable1"></script>
 <script defer src="/static/js/catselect-polish.js?v=cattext-1"></script>
 </body>
 </html>

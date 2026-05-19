@@ -19,8 +19,6 @@
   'use strict';
 
   var ICON_URL = '/static/assets/images/icons/icon-2.jpg?v=icon2-1';
-  var GREETING_PREFIX = 'Chào bạn, tôi là trợ lý AI của Temporal Odyssey.';
-
   var CP1252 = {
     0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84,
     0x2026: 0x85, 0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88,
@@ -344,10 +342,13 @@
     if (chatbotButton) chatbotButton.title = 'Hỏi đáp lịch sử AI';
     setText('.chatbot-title', 'Trợ Lý Lịch Sử AI');
     setText('.chatbot-close', '×');
-    dedupeChatbotGreeting();
+    removeChatbotIntro();
     setText('.chatbot-input', '');
     var chatInput = document.getElementById('chatbot-input');
-    if (chatInput) chatInput.placeholder = 'Hỏi về lịch sử Việt Nam...';
+    if (chatInput) {
+      chatInput.placeholder = 'Hỏi về lịch sử Việt Nam...';
+      clearChatbotDraft(chatInput);
+    }
   }
 
   function cleanChips() {
@@ -408,74 +409,73 @@
   }
 
   function syncChatbotVisibility() {
-    var isCatselectActive = !!document.querySelector('#s-catselect.active');
     var chatbotButton = document.getElementById('chatbot-btn');
     var chatbotModal = document.getElementById('chatbot-modal');
+    var isCompact = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     if (chatbotButton) {
-      chatbotButton.style.setProperty('display', isCatselectActive ? 'none' : 'flex', 'important');
+      chatbotButton.style.setProperty('display', 'flex', 'important');
       chatbotButton.style.setProperty('visibility', 'visible', 'important');
       chatbotButton.style.setProperty('opacity', '1', 'important');
-      chatbotButton.style.setProperty('pointer-events', isCatselectActive ? 'none' : 'auto', 'important');
+      chatbotButton.style.setProperty('pointer-events', 'auto', 'important');
+      chatbotButton.style.setProperty('position', 'fixed', 'important');
+      chatbotButton.style.setProperty('left', isCompact ? '10px' : '14px', 'important');
+      chatbotButton.style.setProperty('top', 'auto', 'important');
+      chatbotButton.style.setProperty('right', 'auto', 'important');
+      chatbotButton.style.setProperty('bottom', isCompact ? 'calc(var(--mobile-bottomnav-h, 72px) + env(safe-area-inset-bottom, 0px) + 12px)' : '72px', 'important');
+      chatbotButton.style.setProperty('width', isCompact ? '54px' : '62px', 'important');
+      chatbotButton.style.setProperty('height', isCompact ? '54px' : '62px', 'important');
+      chatbotButton.style.setProperty('z-index', '2147483000', 'important');
+      chatbotButton.style.setProperty('touch-action', 'manipulation', 'important');
+      chatbotButton.style.setProperty('user-select', 'none', 'important');
     }
-    if (chatbotModal && isCatselectActive) chatbotModal.classList.remove('open');
-  }
-
-  function getScreenLabel(screen, cat) {
-    if (screen === 'map') return cat === 'myth' ? 'bản đồ Huyền Thoại' : cat === 'battle' ? 'bản đồ Chiến Trận' : 'bản đồ Triều Đại';
-    if (screen === 'event') return 'màn sự kiện lịch sử';
-    if (screen === 'journal') return 'màn Nhật Ký và Xếp Hạng';
-    if (screen === 'pay' || screen === 'payment') return 'màn thanh toán';
-    if (screen === 'catselect') return 'màn chọn hành trình';
-    if (screen === 'admin') return 'màn quản trị';
-    return 'Temporal Odyssey';
+    if (chatbotModal) {
+      chatbotModal.style.setProperty('position', 'fixed', 'important');
+      chatbotModal.style.setProperty('left', isCompact ? '8px' : '14px', 'important');
+      chatbotModal.style.setProperty('right', isCompact ? '8px' : 'auto', 'important');
+      chatbotModal.style.setProperty('bottom', isCompact ? 'calc(var(--mobile-bottomnav-h, 72px) + env(safe-area-inset-bottom, 0px) + 74px)' : '136px', 'important');
+      chatbotModal.style.setProperty('width', isCompact ? 'auto' : 'min(360px, calc(100vw - 28px))', 'important');
+      chatbotModal.style.setProperty('max-width', isCompact ? 'none' : '360px', 'important');
+      chatbotModal.style.setProperty('max-height', isCompact ? 'min(56vh, 460px)' : 'min(520px, calc(100vh - 170px))', 'important');
+      chatbotModal.style.setProperty('z-index', '2147483001', 'important');
+      chatbotModal.style.setProperty('pointer-events', 'auto', 'important');
+    }
   }
 
   // ══════════════════════════════════════════════════════════════
   // CHATBOT SUBSECTION
   // ──────────────────────────────────────────────────────────────
-  // Reuses helpers above: normalizeText / fixMojibake / stripEmoji /
-  // GREETING_PREFIX / getScreenLabel. Functions in this section can
+  // Reuses helpers above: normalizeText / fixMojibake / stripEmoji.
+  // Functions in this section can
   // later be lifted into static/js/chatbot.js once helpers are
   // exposed as window.__toUtils. Until then, keep them in this file.
   // ══════════════════════════════════════════════════════════════
 
-  function dedupeChatbotGreeting() {
-    var msgs = document.getElementById('chatbot-msgs');
-    if (!msgs) return;
-    var greeting = 'Xin chào! Tôi là trợ lý AI chuyên về lịch sử Việt Nam. Bạn muốn hỏi gì?';
-    var botRows = Array.from(msgs.querySelectorAll('.chat-msg.bot'));
-    var kept = false;
-    botRows.forEach(function (row) {
-      var bubble = row.querySelector('.chat-bubble');
-      var text = bubble ? normalizeText(bubble.textContent) : '';
-      var isGreeting = /xin chào|xin ch\?o|trợ lý ai|tr\? l\? ai|Temporal Odyssey/i.test(text);
-      if (!isGreeting) return;
-      if (!kept) {
-        if (bubble) bubble.textContent = greeting;
-        row.removeAttribute('data-auto-greeting');
-        kept = true;
-      } else {
-        row.remove();
-      }
-    });
-    if (!kept) {
-      var row = document.createElement('div');
-      row.className = 'chat-msg bot';
-      var bubble = document.createElement('div');
-      bubble.className = 'chat-bubble';
-      bubble.textContent = greeting;
-      row.appendChild(bubble);
-      msgs.insertBefore(row, msgs.firstChild);
+  function clearChatbotDraft(input) {
+    if (!input) return;
+    var value = normalizeText(input.value || '');
+    var isOldAutoDraft = input.dataset.autoDraft === '1'
+      || /^Chào bạn, tôi là trợ lý AI/i.test(value)
+      || /tôi có thể giúp bạn tìm hiểu nội dung/i.test(value);
+    if (isOldAutoDraft) {
+      input.value = '';
+      delete input.dataset.autoDraft;
     }
   }
 
-  function autoComposeGreeting(screen, cat) {
-    dedupeChatbotGreeting();
-    var input = document.getElementById('chatbot-input');
-    if (input && !input.value) {
-      input.value = GREETING_PREFIX + ' Tôi có thể giúp bạn tìm hiểu nội dung ở ' + getScreenLabel(screen, cat) + '.';
-      input.dataset.autoDraft = '1';
-    }
+  function removeChatbotIntro() {
+    var msgs = document.getElementById('chatbot-msgs');
+    if (!msgs) return;
+    var botRows = Array.from(msgs.querySelectorAll('.chat-msg.bot'));
+    botRows.forEach(function (row) {
+      var bubble = row.querySelector('.chat-bubble');
+      var text = bubble ? normalizeText(bubble.textContent) : '';
+      var isGreeting = row.dataset.autoGreeting === '1'
+        || /^Xin chào!?\s*Tôi là trợ lý AI chuyên về lịch sử Việt Nam\.?\s*Bạn muốn hỏi gì\??$/i.test(text)
+        || /^Xin ch\?o!?\s*Tôi là tr\? l\? AI chuyên v\? l\?ch s\? Vi\?t Nam\.?\s*B\?n mu\?n h\?i gì\??$/i.test(text);
+      if (isGreeting) {
+        row.remove();
+      }
+    });
   }
 
   function escapeHtml(value) {
@@ -575,15 +575,82 @@
     return row;
   }
 
-  function patchChatbot() {
+  function setChatbotOpen(open) {
+    var modal = document.getElementById('chatbot-modal');
     var input = document.getElementById('chatbot-input');
+    if (!modal) return false;
+    var nextOpen = typeof open === 'boolean' ? open : !modal.classList.contains('open');
+    modal.classList.toggle('open', nextOpen);
+    modal.setAttribute('aria-hidden', nextOpen ? 'false' : 'true');
+    if (nextOpen && input) {
+      clearChatbotDraft(input);
+      window.requestAnimationFrame(function () {
+        try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+      });
+    }
+    syncChatbotVisibility();
+    return nextOpen;
+  }
+
+  function bindChatbotAction(el, handler) {
+    if (!el || el.dataset.chatbotBound === '1') return;
+    el.dataset.chatbotBound = '1';
+    el.removeAttribute('onclick');
+    var lastPointer = 0;
+    el.addEventListener('pointerdown', function (event) {
+      lastPointer = Date.now();
+      event.preventDefault();
+      event.stopPropagation();
+      handler(event);
+    }, { passive: false });
+    el.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (Date.now() - lastPointer < 450) return;
+      handler(event);
+    });
+    el.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      event.stopPropagation();
+      handler(event);
+    });
+  }
+
+  function patchChatbot() {
+    var chatbotButton = document.getElementById('chatbot-btn');
+    var closeButton = document.querySelector('.chatbot-close');
+    var sendButton = document.querySelector('.chatbot-send');
+    var input = document.getElementById('chatbot-input');
+    var modal = document.getElementById('chatbot-modal');
+    var msgs = document.getElementById('chatbot-msgs');
+    if (modal && modal.dataset.chatbotModalBound !== '1') {
+      modal.dataset.chatbotModalBound = '1';
+      modal.setAttribute('aria-hidden', modal.classList.contains('open') ? 'false' : 'true');
+      modal.addEventListener('pointerdown', function (event) {
+        event.stopPropagation();
+      });
+    } else if (modal) {
+      modal.setAttribute('aria-hidden', modal.classList.contains('open') ? 'false' : 'true');
+    }
+    if (msgs) removeChatbotIntro();
+    window.toggleChatbot = function (forceOpen) {
+      return setChatbotOpen(typeof forceOpen === 'boolean' ? forceOpen : undefined);
+    };
+    bindChatbotAction(chatbotButton, function () { setChatbotOpen(); });
+    bindChatbotAction(closeButton, function () { setChatbotOpen(false); });
+    bindChatbotAction(sendButton, function () { window.sendChat(); });
     if (input && !input.dataset.cleanupBound) {
       input.dataset.cleanupBound = '1';
+      input.removeAttribute('onkeydown');
+      clearChatbotDraft(input);
       input.addEventListener('input', function () {
         delete input.dataset.autoDraft;
       });
-      input.addEventListener('focus', function () {
-        if (input.dataset.autoDraft === '1') input.select();
+      input.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' || event.shiftKey) return;
+        event.preventDefault();
+        window.sendChat();
       });
     }
 
@@ -591,9 +658,9 @@
       var inp = document.getElementById('chatbot-input');
       var msgs = document.getElementById('chatbot-msgs');
       if (!inp || !msgs || window.__chatBusy) return;
+      clearChatbotDraft(inp);
       var question = inp.value.trim();
       if (!question) return;
-      delete inp.dataset.autoDraft;
       inp.value = '';
       appendChatMessage('user', escapeHtml(question));
       var typing = appendChatMessage('bot', '<div class="chat-typing"><div class="chat-dot"></div><div class="chat-dot"></div><div class="chat-dot"></div></div>');
@@ -632,7 +699,7 @@
         var result = originalGo.apply(this, arguments);
         setTimeout(function () {
           runCleanup();
-          autoComposeGreeting(screen, cat || window.curCat);
+          patchChatbot();
         }, 80);
         return result;
       };
@@ -643,7 +710,7 @@
         var result = originalOpenEv.apply(this, arguments);
         setTimeout(function () {
           runCleanup();
-          autoComposeGreeting('event', window.curCat);
+          patchChatbot();
         }, 80);
         return result;
       };
@@ -703,8 +770,6 @@
     patchChatbot();
     patchNavigation();
     observeDynamic();
-    var active = document.querySelector('.screen.active');
-    if (active) autoComposeGreeting(active.id.replace(/^s-/, ''), window.curCat);
   }
 
   if (document.readyState === 'loading') {
