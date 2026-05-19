@@ -1,7 +1,7 @@
 """
 Temporal Odyssey — FastAPI Server
 """
-import os, httpx
+import os, re, unicodedata, httpx
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
@@ -538,20 +538,115 @@ SYSTEM_PROMPT = (
     "Bạn là trợ lý lịch sử Việt Nam trong ứng dụng Temporal Odyssey. "
     "Trả lời bằng tiếng Việt, ngắn gọn (dưới 200 từ), chính xác. "
     "Chỉ trả lời câu hỏi liên quan đến lịch sử, văn hóa, truyền thuyết Việt Nam. "
+    "Câu hỏi rất ngắn chỉ gồm tên nhân vật/sự kiện như 'Vua Hùng' hoặc 'Bạch Đằng' vẫn là câu hỏi hợp lệ; hãy giải thích trực tiếp. "
     "Nếu câu hỏi ngoài phạm vi, lịch sự từ chối và gợi ý hỏi về lịch sử VN. "
     "Không dùng emoji. Dùng format markdown khi cần (bold, list)."
 )
+
+CHAT_FALLBACK_DEFAULT = (
+    "Mình có thể trả lời về lịch sử, văn hóa và truyền thuyết Việt Nam. "
+    "Bạn hãy hỏi về một nhân vật, sự kiện hoặc triều đại cụ thể."
+)
+
+CHAT_FALLBACK_TOPICS = [
+    (
+        ("vua hung", "hung vuong", "van lang", "phong chau", "den hung"),
+        "Vua Hùng là cách gọi các vua thời Hùng Vương, gắn với nhà nước Văn Lang - nhà nước sơ khai của người Việt. Truyền thuyết kể có 18 đời Hùng Vương, đóng đô ở Phong Châu (Phú Thọ), gắn với văn minh lúa nước, trống đồng Đông Sơn và nhiều truyện như bánh chưng bánh dày, Sơn Tinh - Thủy Tinh.",
+    ),
+    (
+        ("lac long quan", "au co", "boc tram trung", "con rong chau tien"),
+        "Lạc Long Quân và Âu Cơ là truyền thuyết giải thích nguồn gốc dân tộc Việt. Âu Cơ sinh bọc trăm trứng; 50 người con theo cha xuống biển, 50 người con theo mẹ lên núi, tượng trưng cho cộng đồng người Việt cùng chung cội nguồn.",
+    ),
+    (
+        ("bach dang", "ngo quyen", "nam han"),
+        "Trận Bạch Đằng năm 938 do Ngô Quyền chỉ huy. Ông dùng cọc gỗ cắm dưới lòng sông, nhử thủy quân Nam Hán vào lúc thủy triều lên rồi phản công khi nước rút, chấm dứt hơn một nghìn năm Bắc thuộc.",
+    ),
+    (
+        ("hai ba trung", "trung trac", "trung nhi"),
+        "Hai Bà Trưng gồm Trưng Trắc và Trưng Nhị, lãnh đạo khởi nghĩa năm 40 chống ách đô hộ Đông Hán. Cuộc khởi nghĩa giành lại nhiều thành trì và trở thành biểu tượng lớn của tinh thần độc lập, đặc biệt là vai trò phụ nữ trong lịch sử Việt Nam.",
+    ),
+    (
+        ("tran hung dao", "tran quoc tuan", "mong nguyen", "hich tuong si"),
+        "Trần Hưng Đạo, tức Trần Quốc Tuấn, là danh tướng thời Trần, chỉ huy quân dân Đại Việt chống quân Mông - Nguyên trong thế kỷ XIII. Ông gắn với Hịch tướng sĩ và chiến thắng Bạch Đằng năm 1288.",
+    ),
+    (
+        ("le loi", "lam son", "nguyen trai", "binh ngo dai cao"),
+        "Lê Lợi lãnh đạo khởi nghĩa Lam Sơn từ năm 1418 chống quân Minh. Sau thắng lợi năm 1427, ông lên ngôi năm 1428, mở đầu nhà Lê sơ; Nguyễn Trãi thay mặt nghĩa quân viết Bình Ngô Đại Cáo.",
+    ),
+    (
+        ("an duong vuong", "co loa", "no than", "au lac", "mi chau", "trong thuy"),
+        "An Dương Vương lập nước Âu Lạc và gắn với thành Cổ Loa, nỏ thần Kim Quy. Truyền thuyết Mị Châu - Trọng Thủy kể bài học về cảnh giác, bí mật quân sự và bi kịch mất nước.",
+    ),
+    (
+        ("dinh bo linh", "dinh tien hoang", "12 su quan", "dai co viet"),
+        "Đinh Bộ Lĩnh dẹp loạn 12 sứ quân, thống nhất đất nước và lên ngôi năm 968 với hiệu Đinh Tiên Hoàng. Ông đặt quốc hiệu Đại Cồ Việt, đóng đô ở Hoa Lư.",
+    ),
+    (
+        ("nha ly", "ly cong uan", "thang long", "chieu doi do"),
+        "Nhà Lý bắt đầu năm 1009 khi Lý Công Uẩn lên ngôi. Năm 1010, ông ban Chiếu dời đô, chuyển kinh đô từ Hoa Lư ra Thăng Long, mở ra thời kỳ phát triển lâu dài của Đại Việt.",
+    ),
+    (
+        ("nha tran", "ba lan khang nguyen"),
+        "Nhà Trần trị vì từ năm 1225 đến 1400, nổi bật với ba lần kháng chiến thắng quân Mông - Nguyên vào các năm 1258, 1285 và 1288. Đây là một thời kỳ quân sự, văn hóa và chính trị rất quan trọng của Đại Việt.",
+    ),
+    (
+        ("nha nguyen", "gia long", "bao dai", "trieu nguyen"),
+        "Nhà Nguyễn là triều đại quân chủ cuối cùng của Việt Nam, tồn tại từ năm 1802 đến 1945. Gia Long là vua sáng lập; Bảo Đại là vị vua cuối cùng, thoái vị sau Cách mạng Tháng Tám.",
+    ),
+    (
+        ("dien bien phu", "vo nguyen giap", "phap"),
+        "Chiến thắng Điện Biên Phủ ngày 7/5/1954 do Đại tướng Võ Nguyên Giáp chỉ huy là thắng lợi quyết định trước thực dân Pháp, dẫn tới Hiệp định Genève 1954 về Đông Dương.",
+    ),
+    (
+        ("cach mang thang tam", "doc lap 1945", "ho chi minh", "tuyen ngon doc lap"),
+        "Cách mạng Tháng Tám năm 1945 giành chính quyền trên cả nước. Ngày 2/9/1945, Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập tại Ba Đình, khai sinh nước Việt Nam Dân chủ Cộng hòa.",
+    ),
+]
+
+
+def _normalize_chat_text(value: str) -> str:
+    text = unicodedata.normalize("NFD", value.lower())
+    text = "".join(ch for ch in text if unicodedata.category(ch) != "Mn")
+    text = text.replace("đ", "d")
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _local_chat_fallback(question: str) -> str:
+    normalized = _normalize_chat_text(question)
+    for keywords, answer in CHAT_FALLBACK_TOPICS:
+        if any(keyword in normalized for keyword in keywords):
+            return answer
+    return CHAT_FALLBACK_DEFAULT
+
+
+def _is_specific_local_answer(answer: str) -> bool:
+    return answer != CHAT_FALLBACK_DEFAULT
+
+
+def _looks_like_scope_refusal(answer: str) -> bool:
+    normalized = _normalize_chat_text(answer)
+    refusal_markers = (
+        "ngoai pham vi",
+        "khong the tra loi",
+        "chi tra loi cau hoi lien quan",
+        "hay hoi ve lich su",
+        "hoi ve mot nhan vat su kien hoac trieu dai",
+    )
+    return any(marker in normalized for marker in refusal_markers)
 
 
 @app.post("/api/chat", tags=["AI Chat"], summary="Chat với AI lịch sử")
 @limiter.limit("15/minute")
 async def ai_chat(req: ChatRequest, request: Request):
     import asyncio
-    if not GEMINI_KEY:
-        raise HTTPException(503, "AI chưa được cấu hình. Thêm GEMINI_API_KEY vào .env")
     user_msg = req.message.strip()
     if not user_msg or len(user_msg) > 500:
         raise HTTPException(400, "Tin nhắn không hợp lệ")
+    local_answer = _local_chat_fallback(user_msg)
+    has_specific_local_answer = _is_specific_local_answer(local_answer)
+    if not GEMINI_KEY:
+        return {"reply": local_answer, "source": "local_fallback"}
 
     # Gemini models support system_instruction; Gemma models don't
     payload_with_sys = {
@@ -576,7 +671,9 @@ async def ai_chat(req: ChatRequest, request: Request):
                     if resp.status_code == 200:
                         data = resp.json()
                         text = data["candidates"][0]["content"]["parts"][0]["text"]
-                        return {"reply": text}
+                        if has_specific_local_answer and _looks_like_scope_refusal(text):
+                            return {"reply": local_answer, "source": "local_fallback"}
+                        return {"reply": text, "source": "gemini"}
                     last_error = f"{model}: HTTP {resp.status_code}"
                     if resp.status_code == 503:
                         await asyncio.sleep(1 + attempt)
@@ -585,7 +682,7 @@ async def ai_chat(req: ChatRequest, request: Request):
                 except Exception as e:
                     last_error = f"{model}: {type(e).__name__}"
 
-    raise HTTPException(502, f"AI tạm thời không khả dụng. ({last_error})")
+    return {"reply": local_answer, "source": "local_fallback", "detail": last_error}
 
 
 # ══════════════════════════════════════

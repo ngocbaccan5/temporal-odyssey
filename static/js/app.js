@@ -3944,6 +3944,7 @@ function toggleChatbot(){
 const HISTORY_KB={
   'lạc long quân':'Lạc Long Quân là con trai của Thần Biển, thuộc dòng dõi Rồng. Ông kết hôn với Âu Cơ (tiên nữ) và sinh ra bọc trăm trứng — tổ tiên của người Việt.',
   'âu cơ':'Âu Cơ là tiên nữ trên núi, vợ của Lạc Long Quân. Bà sinh ra bọc trăm trứng, 50 con theo cha xuống biển, 50 con theo mẹ lên núi.',
+  'vua hùng':'Vua Hùng là cách gọi các vua thời Hùng Vương, gắn với nhà nước Văn Lang - nhà nước sơ khai của người Việt. Truyền thuyết kể có 18 đời Hùng Vương, đóng đô ở Phong Châu (Phú Thọ).',
   'hùng vương':'18 đời Hùng Vương cai trị nhà nước Văn Lang từ khoảng thế kỷ 7 TCN, kinh đô Phong Châu (Phú Thọ).',
   'hai bà trưng':'Trưng Trắc và Trưng Nhị khởi nghĩa năm 40 SCN chống ách đô hộ Đông Hán, thu phục hơn 65 thành trì.',
   'bạch đằng':'Trận Bạch Đằng năm 938 do Ngô Quyền chỉ huy — dùng cọc gỗ bọc sắt cắm xuống lòng sông kết hợp thủy triều, chấm dứt hơn 1000 năm Bắc thuộc.',
@@ -3951,6 +3952,17 @@ const HISTORY_KB={
   'lê lợi':'Lê Lợi khởi nghĩa Lam Sơn năm 1418, đánh đuổi quân Minh sau 10 năm. Nguyễn Trãi soạn Bình Ngô Đại Cáo.',
   'an dương vương':'An Dương Vương xây thành Cổ Loa nhờ Thần Rùa Kim Quy. Có nỏ thần bắn một phát giết nghìn quân.',
 };
+
+function normalizeChatLookup(s){
+  return String(s||'')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .replace(/đ/g,'d')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
 
 function escapeChat(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
@@ -3965,9 +3977,9 @@ function renderMd(s){
 }
 
 function fallbackAnswer(q){
-  q=q.toLowerCase().normalize('NFC');
+  const normalizedQuestion=normalizeChatLookup(q);
   for(const [key,ans] of Object.entries(HISTORY_KB)){
-    if(q.includes(key)) return ans;
+    if(normalizedQuestion.includes(normalizeChatLookup(key))) return ans;
   }
   return 'Hiện tại AI không khả dụng. Hãy thử hỏi về: Hai Bà Trưng, Ngô Quyền, Trần Hưng Đạo, Lê Lợi...';
 }

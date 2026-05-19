@@ -491,18 +491,74 @@
       .replace(/\n/g, '<br>');
   }
 
+  var CHAT_FALLBACK_DEFAULT = 'Mình có thể trả lời về lịch sử, văn hóa và truyền thuyết Việt Nam. Bạn hãy hỏi về một nhân vật, sự kiện hoặc triều đại cụ thể.';
+  var CHAT_FALLBACKS = [
+    {
+      terms: ['vua hung', 'hung vuong', 'van lang', 'phong chau', 'den hung'],
+      answer: 'Vua Hùng là cách gọi các vua thời Hùng Vương, gắn với nhà nước Văn Lang - nhà nước sơ khai của người Việt. Truyền thuyết kể có 18 đời Hùng Vương, đóng đô ở Phong Châu (Phú Thọ), gắn với văn minh lúa nước, trống đồng Đông Sơn và các truyện như bánh chưng bánh dày, Sơn Tinh - Thủy Tinh.'
+    },
+    {
+      terms: ['lac long quan', 'au co', 'boc tram trung', 'con rong chau tien'],
+      answer: 'Lạc Long Quân và Âu Cơ là truyền thuyết giải thích nguồn gốc dân tộc Việt: bọc trăm trứng, 50 người con theo cha xuống biển và 50 người con theo mẹ lên núi.'
+    },
+    {
+      terms: ['bach dang', 'ngo quyen', 'nam han'],
+      answer: 'Trận Bạch Đằng năm 938 do Ngô Quyền chỉ huy, dùng cọc gỗ và thủy triều để đánh bại quân Nam Hán, chấm dứt hơn một nghìn năm Bắc thuộc.'
+    },
+    {
+      terms: ['hai ba trung', 'trung trac', 'trung nhi'],
+      answer: 'Hai Bà Trưng gồm Trưng Trắc và Trưng Nhị, lãnh đạo khởi nghĩa năm 40 chống ách đô hộ Đông Hán, thu phục nhiều thành trì và trở thành biểu tượng lớn của tinh thần độc lập.'
+    },
+    {
+      terms: ['tran hung dao', 'tran quoc tuan', 'mong nguyen', 'hich tuong si'],
+      answer: 'Trần Hưng Đạo, tức Trần Quốc Tuấn, là danh tướng thời Trần, chỉ huy quân dân Đại Việt chống quân Mông - Nguyên trong thế kỷ XIII và gắn với chiến thắng Bạch Đằng năm 1288.'
+    },
+    {
+      terms: ['le loi', 'lam son', 'nguyen trai', 'binh ngo dai cao'],
+      answer: 'Lê Lợi lãnh đạo khởi nghĩa Lam Sơn từ năm 1418 chống quân Minh. Sau thắng lợi, ông lên ngôi năm 1428, mở đầu nhà Lê sơ; Nguyễn Trãi thay mặt nghĩa quân viết Bình Ngô Đại Cáo.'
+    },
+    {
+      terms: ['an duong vuong', 'co loa', 'no than', 'au lac', 'mi chau', 'trong thuy'],
+      answer: 'An Dương Vương lập nước Âu Lạc và gắn với thành Cổ Loa, nỏ thần Kim Quy. Truyền thuyết Mị Châu - Trọng Thủy là bài học về cảnh giác và bí mật quân sự.'
+    },
+    {
+      terms: ['dinh bo linh', 'dinh tien hoang', '12 su quan', 'dai co viet'],
+      answer: 'Đinh Bộ Lĩnh dẹp loạn 12 sứ quân, thống nhất đất nước và lên ngôi năm 968 với hiệu Đinh Tiên Hoàng. Ông đặt quốc hiệu Đại Cồ Việt, đóng đô ở Hoa Lư.'
+    },
+    {
+      terms: ['nha ly', 'ly cong uan', 'thang long', 'chieu doi do'],
+      answer: 'Nhà Lý bắt đầu năm 1009 khi Lý Công Uẩn lên ngôi. Năm 1010, ông dời đô từ Hoa Lư ra Thăng Long, mở ra thời kỳ phát triển lâu dài của Đại Việt.'
+    },
+    {
+      terms: ['nha tran', 'ba lan khang nguyen'],
+      answer: 'Nhà Trần trị vì từ năm 1225 đến 1400, nổi bật với ba lần kháng chiến thắng quân Mông - Nguyên vào các năm 1258, 1285 và 1288.'
+    },
+    {
+      terms: ['dien bien phu', 'vo nguyen giap'],
+      answer: 'Chiến thắng Điện Biên Phủ ngày 7/5/1954 do Đại tướng Võ Nguyên Giáp chỉ huy là thắng lợi quyết định trước thực dân Pháp, dẫn tới Hiệp định Genève 1954.'
+    }
+  ];
+
+  function normalizeChatQuery(text) {
+    return stripEmoji(text)
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   function localChatFallback(question) {
-    var q = stripEmoji(question).toLowerCase();
-    if (/lạc long|lac long|âu cơ|au co/.test(q)) {
-      return 'Lạc Long Quân và Âu Cơ là truyền thuyết giải thích nguồn gốc dân tộc Việt: bọc trăm trứng, 50 con xuống biển và 50 con lên núi.';
+    var q = normalizeChatQuery(question);
+    for (var i = 0; i < CHAT_FALLBACKS.length; i++) {
+      var item = CHAT_FALLBACKS[i];
+      for (var j = 0; j < item.terms.length; j++) {
+        if (q.indexOf(item.terms[j]) !== -1) return item.answer;
+      }
     }
-    if (/bạch đằng|bach dang|ngô quyền|ngo quyen/.test(q)) {
-      return 'Trận Bạch Đằng năm 938 do Ngô Quyền chỉ huy, dùng cọc gỗ và thủy triều để đánh bại quân Nam Hán.';
-    }
-    if (/hùng vương|hung vuong|văn lang|van lang/.test(q)) {
-      return 'Vua Hùng gắn với thời Văn Lang và các truyền thuyết dựng nước như bánh chưng bánh dày, Sơn Tinh Thủy Tinh, Thánh Gióng.';
-    }
-    return 'Mình có thể trả lời về lịch sử, văn hóa và truyền thuyết Việt Nam. Bạn hãy hỏi về một nhân vật, sự kiện hoặc triều đại cụ thể.';
+    return CHAT_FALLBACK_DEFAULT;
   }
 
   function appendChatMessage(role, html) {
